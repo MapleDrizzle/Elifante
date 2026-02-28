@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { AuthProvider } from './contexts/AuthContext'
 import App from './App'
 import './index.css'
 
@@ -9,8 +11,12 @@ if (!rootEl) throw new Error('Root element #root not found')
 
 createRoot(rootEl).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )

@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
 const SIDEBAR_ITEMS = [
   { label: 'Home', path: '/' },
@@ -9,6 +10,14 @@ const SIDEBAR_ITEMS = [
 ] as const
 
 export default function Layout(): JSX.Element {
+  const navigate = useNavigate()
+  const { signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -26,6 +35,9 @@ export default function Layout(): JSX.Element {
             </NavLink>
           ))}
         </nav>
+        <button type="button" className="sidebar-item sidebar-sign-out" onClick={handleSignOut}>
+          Sign out
+        </button>
       </aside>
       <div className="app-content">
         <Outlet />
