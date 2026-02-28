@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 const url = import.meta.env.VITE_SUPABASE_URL
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!url || !anonKey) {
-  console.warn('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY – auth and data will be unavailable.')
+function getSupabase(): SupabaseClient | null {
+  if (!url || !anonKey) return null
+  return createClient(url, anonKey)
 }
 
-export const supabase = url && anonKey
-  ? createClient(url, anonKey)
-  : (null as ReturnType<typeof createClient>)
+export const supabase = getSupabase()
