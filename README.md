@@ -30,13 +30,26 @@ A web app to help mothers during postpartum keep track of what matters.
 
 - **React 18** – UI
 - **Vite** – dev server and build
+- **Supabase** – auth, PostgreSQL database, optional real-time
+
+## Database
+
+The app uses **Supabase** (PostgreSQL) for users, moms, babies, and tracking data.
+
+- **Schema:** `supabase/migrations/00001_initial_schema.sql`
+- **Overview:** See [supabase/README.md](supabase/README.md) for tables (profiles, moms, babies, mood, mother_diet, baby_diet, sleep, development) and how to run the migration.
+- **Types:** `src/types/database.ts` – TypeScript types that mirror the schema.
+
+To use the database: create a Supabase project, run the migration in the SQL Editor, then set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`.
 
 ## Project structure
 
 - `src/` – app source
-  - `App.jsx` – root component
-  - `main.jsx` – entry point
+  - `App.tsx` – root component
+  - `main.tsx` – entry point
   - `index.css` – global styles
+  - `types/database.ts` – DB types for Supabase
+- `supabase/migrations/` – SQL schema
 - `public/` – static assets
 
 Add `src/components/` and `src/pages/` as you build out features.
