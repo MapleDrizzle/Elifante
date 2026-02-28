@@ -1,6 +1,60 @@
 .app {
+  display: flex;
   min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  padding: 1.5rem 1rem;
+  background: var(--card);
+  border-right: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow);
+}
+
+.sidebar-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-item:hover {
+  background: rgba(196, 123, 123, 0.12);
+  color: var(--accent);
+}
+
+.sidebar-item--active {
+  background: rgba(196, 123, 123, 0.16);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.app-content {
+  flex: 1;
   padding: 2rem;
+  overflow: auto;
 }
 
 .app-header {
