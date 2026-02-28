@@ -88,3 +88,231 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+
+/* Home dashboard */
+.app-header--home {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.home-greeting {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.app-header-tagline {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.app-main--dashboard {
+  max-width: 100%;
+}
+
+/* Slideshow */
+.slideshow {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.slideshow-track {
+  overflow: hidden;
+  min-width: 0;
+}
+
+.slideshow-slides {
+  display: flex;
+  transition: transform 0.35s ease;
+}
+
+.slideshow-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slideshow-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0.5rem 1.25rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.slideshow-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1.75rem;
+  line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slideshow-arrow:hover {
+  color: var(--accent);
+  background: rgba(196, 123, 123, 0.08);
+}
+
+.slideshow-arrow:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.slideshow-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.slideshow-dot {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.slideshow-dot:hover {
+  background: rgba(196, 123, 123, 0.4);
+}
+
+.slideshow-dot--active {
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent), 0 0 20px rgba(196, 123, 123, 0.4);
+  transform: scale(1.2);
+}
+
+/* Dashboard slide content */
+.dashboard-slide {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-slide-title {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dashboard-slide-subtitle {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.dashboard-slide--loading,
+.dashboard-slide--empty {
+  color: var(--muted);
+  text-align: center;
+  padding: 2rem;
+}
+
+.dashboard-slide--chart .dashboard-slide-title {
+  text-align: center;
+}
+
+.dashboard-slide--mood .mood-display {
+  text-align: center;
+}
+
+.mood-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.mood-dot {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  transition: background 0.2s ease;
+}
+
+.mood-dot--filled {
+  background: var(--accent);
+}
+
+.mood-label {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Development slide */
+.dashboard-slide--dev {
+  align-items: stretch;
+  text-align: left;
+}
+
+.dev-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.dev-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 1.25rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+}
+
+.dev-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.dev-stat-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.dev-milestones h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.dev-milestones ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.dashboard-slide-empty-text {
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
