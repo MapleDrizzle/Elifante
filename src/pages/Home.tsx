@@ -48,7 +48,7 @@ export default function Home(): JSX.Element {
   return (
     <>
       <header className="app-header app-header--home">
-        <h1 className="home-greeting">Hello, {displayName}</h1>
+        <h1 className="home-greeting">Hello, {displayName}!</h1>
         <p className="app-header-tagline">Your postpartum companion</p>
       </header>
       <main className="app-main app-main--dashboard">
