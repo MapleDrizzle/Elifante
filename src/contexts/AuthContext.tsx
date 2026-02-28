@@ -1,153 +1,5 @@
 import {
   createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react'
-import { supabase } from '../lib/supabase'
-import type { Profile, Mom, Baby } from '../types/database'
-
-type AuthContextValue = {
-  userId: string | null
-  profile: Profile | null
-  mom: Mom | null
-  babies: Baby[]
-  loading: boolean
-  displayName: string
-}
-
-const AuthContext = createContext<AuthContextValue>({
-  userId: null,
-  profile: null,
-  mom: null,
-  babies: [],
-  loading: true,
-  displayName: 'User',
-})
-
-export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
-  const [userId, setUserId] = useState<string | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [mom, setMom] = useState<Mom | null>(null)
-  const [babies, setBabies] = useState<Baby[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const client = supabase
-    if (!client) {
-      setLoading(false)
-      return
-    }
-
-    const getInitial = async (): Promise<void> => {
-      const { data: { user } } = await client.auth.getUser()
-      if (!user) {
-        setLoading(false)
-        return
-      }
-      setUserId(user.id)
-
-      const { data: profileData } = await client
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-      setProfile(profileData ?? null)
-
-      if (!profileData) {
-        setLoading(false)
-        return
-      }
-
-      const { data: momData } = await client
-        .from('moms')
-        .select('*')
-        .eq('profile_id', user.id)
-        .single()
-      setMom(momData ?? null)
-
-      if (!momData) {
-        setLoading(false)
-        return
-      }
-
-      const { data: babiesData } = await client
-        .from('babies')
-        .select('*')
-        .eq('mom_id', momData.id)
-        .order('birth_date', { ascending: false })
-      setBabies(babiesData ?? [])
-      setLoading(false)
-    }
-
-    getInitial()
-
-    const { data: { subscription } } = client.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!session?.user) {
-          setUserId(null)
-          setProfile(null)
-          setMom(null)
-          setBabies([])
-          setLoading(false)
-          return
-        }
-        setUserId(session.user.id)
-        const { data: profileData } = await client
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        setProfile(profileData ?? null)
-        if (!profileData) {
-          setMom(null)
-          setBabies([])
-          setLoading(false)
-          return
-        }
-        const { data: momData } = await client
-          .from('moms')
-          .select('*')
-          .eq('profile_id', session.user.id)
-          .single()
-        setMom(momData ?? null)
-        if (!momData) {
-          setBabies([])
-          setLoading(false)
-          return
-        }
-        const { data: babiesData } = await client
-          .from('babies')
-          .select('*')
-          .eq('mom_id', momData.id)
-          .order('birth_date', { ascending: false })
-        setBabies(babiesData ?? [])
-        setLoading(false)
-      }
-    )
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
-
-  const displayName = profile?.username?.trim() || 'User'
-
-  return (
-    <AuthContext.Provider
-      value={{
-        userId,
-        profile,
-        mom,
-        babies,
-        loading,
-        displayName,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
   useCallback,
   useContext,
   useEffect,
@@ -157,15 +9,17 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import type { Profile, Mom, Baby } from '../types/database'
 
-type AuthState = {
+type AuthContextValue = {
   user: User | null
   session: Session | null
+  profile: Profile | null
+  mom: Mom | null
+  babies: Baby[]
   loading: boolean
   error: string | null
-}
-
-type AuthContextValue = AuthState & {
+  displayName: string
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, username?: string) => Promise<void>
   signOut: () => Promise<void>
@@ -174,9 +28,52 @@ type AuthContextValue = AuthState & {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+async function loadProfileData(
+  userId: string,
+  setProfile: (p: Profile | null) => void,
+  setMom: (m: Mom | null) => void,
+  setBabies: (b: Baby[]) => void
+): Promise<void> {
+  const client = supabase
+  if (!client) return
+
+  const { data: profileData } = await client
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single()
+  setProfile(profileData ?? null)
+  if (!profileData) {
+    setMom(null)
+    setBabies([])
+    return
+  }
+
+  const { data: momData } = await client
+    .from('moms')
+    .select('*')
+    .eq('profile_id', userId)
+    .single()
+  setMom(momData ?? null)
+  if (!momData) {
+    setBabies([])
+    return
+  }
+
+  const { data: babiesData } = await client
+    .from('babies')
+    .select('*')
+    .eq('mom_id', momData.id)
+    .order('birth_date', { ascending: false })
+  setBabies(babiesData ?? [])
+}
+
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [mom, setMom] = useState<Mom | null>(null)
+  const [babies, setBabies] = useState<Baby[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -185,24 +82,39 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       setLoading(false)
       return
     }
+
     supabase.auth
       .getSession()
       .then(({ data: { session: s } }) => {
         setSession(s)
         setUser(s?.user ?? null)
+        if (s?.user) {
+          loadProfileData(s.user.id, setProfile, setMom, setBabies).finally(() =>
+            setLoading(false)
+          )
+        } else {
+          setLoading(false)
+        }
       })
       .catch((err) => {
         console.error('Auth getSession error:', err)
         setUser(null)
         setSession(null)
+        setLoading(false)
       })
-      .finally(() => setLoading(false))
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, s) => {
+    } = supabase.auth.onAuthStateChange(async (_event, s) => {
       setSession(s)
       setUser(s?.user ?? null)
+      if (s?.user) {
+        await loadProfileData(s.user.id, setProfile, setMom, setBabies)
+      } else {
+        setProfile(null)
+        setMom(null)
+        setBabies([])
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -211,7 +123,9 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   const signIn = useCallback(async (email: string, password: string) => {
     setError(null)
     if (!supabase) {
-      setError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env')
+      setError(
+        'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env'
+      )
       throw new Error('Supabase not configured')
     }
     const { error: e } = await supabase.auth.signInWithPassword({ email, password })
@@ -225,7 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     async (email: string, password: string, username?: string) => {
       setError(null)
       if (!supabase) {
-        setError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env')
+        setError(
+          'Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env'
+        )
         throw new Error('Supabase not configured')
       }
       const { error: e } = await supabase.auth.signUp({
@@ -250,18 +166,37 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
   const clearError = useCallback(() => setError(null), [])
 
+  const displayName = profile?.username?.trim() || 'User'
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       session,
+      profile,
+      mom,
+      babies,
       loading,
       error,
+      displayName,
       signIn,
       signUp,
       signOut,
       clearError,
     }),
-    [user, session, loading, error, signIn, signUp, signOut, clearError]
+    [
+      user,
+      session,
+      profile,
+      mom,
+      babies,
+      loading,
+      error,
+      displayName,
+      signIn,
+      signUp,
+      signOut,
+      clearError,
+    ]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
