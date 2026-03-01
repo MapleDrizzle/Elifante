@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Sleep, MotherDiet, BabyDiet, Mood, Development } from '../types/database'
+import type { Sleep, MotherDiet, BabyDiet, Mood, Development, ForumPost } from '../types/database'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -356,15 +356,24 @@ export function useBabyDietWeekly(babyIds: string[]): {
 
 export function useLatestMood(momId: string | null): {
   mood: number | null
+  emotion: string | null
+  moodContext: string | null
+  recordedAt: string | null
   loading: boolean
 } {
   const [mood, setMood] = useState<number | null>(null)
+  const [emotion, setEmotion] = useState<string | null>(null)
+  const [moodContext, setMoodContext] = useState<string | null>(null)
+  const [recordedAt, setRecordedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const client = supabase
     if (!client || !momId) {
       setMood(null)
+      setEmotion(null)
+      setMoodContext(null)
+      setRecordedAt(null)
       setLoading(false)
       return
     }
@@ -372,19 +381,228 @@ export function useLatestMood(momId: string | null): {
     const fetchMood = async (): Promise<void> => {
       const { data } = await client
         .from('mood')
-        .select('mood')
+        .select('*')
         .eq('mom_id', momId)
         .order('recorded_at', { ascending: false })
         .limit(1)
-        .single() as { data: Mood | null }
+        .maybeSingle() as { data: Mood | null }
       setMood(data?.mood ?? null)
+      setEmotion(data?.emotion ?? null)
+      setMoodContext(data?.mood_context ?? null)
+      setRecordedAt(data?.recorded_at ?? null)
       setLoading(false)
     }
 
     fetchMood()
   }, [momId])
 
-  return { mood, loading }
+  return { mood, emotion, moodContext, recordedAt, loading }
+}
+
+export function useMoodHistory(momId: string | null): {
+  moods: Mood[]
+  loading: boolean
+  refetch: () => void
+} {
+  const [moods, setMoods] = useState<Mood[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetch = useCallback(async () => {
+    const client = supabase
+    if (!client || !momId) {
+      setMoods([])
+      setLoading(false)
+      return
+    }
+    const { data } = await client
+      .from('mood')
+      .select('*')
+      .eq('mom_id', momId)
+      .order('recorded_at', { ascending: false }) as { data: Mood[] | null }
+    setMoods(data ?? [])
+    setLoading(false)
+  }, [momId])
+
+  useEffect(() => {
+    fetch()
+  }, [fetch])
+
+  return { moods, loading, refetch: fetch }
+}
+
+export function useInsertMood(momId: string | null): {
+  insert: (mood: number, emotion?: string | null, moodContext?: string | null) => Promise<void>
+  inserting: boolean
+  error: string | null
+} {
+  const [inserting, setInserting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const insert = useCallback(
+    async (rating: number, emotionText?: string | null, context?: string | null) => {
+      if (!momId || !supabase) return
+      setError(null)
+      setInserting(true)
+      try {
+        const row: { mom_id: string; mood: number; emotion?: string | null; mood_context?: string | null } = {
+          mom_id: momId,
+          mood: rating,
+        }
+        if (emotionText != null && String(emotionText).trim() !== '') row.emotion = emotionText.trim()
+        if (context != null && String(context).trim() !== '') row.mood_context = context.trim()
+        const { error: e } = await supabase.from('mood').insert(row)
+        if (e) {
+          if (e.message?.includes('emotion') || e.message?.includes('mood_context') || e.code === '42703') {
+            const { error: e2 } = await supabase.from('mood').insert({ mom_id: momId, mood: rating })
+            if (e2) throw e2
+          } else throw e
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to log mood')
+        throw err
+      } finally {
+        setInserting(false)
+      }
+    },
+    [momId]
+  )
+
+  return { insert, inserting, error }
+}
+
+export type ForumPostWithProfile = ForumPost & {
+  profiles?: { username: string | null } | null
+}
+
+export function useForumPosts(): {
+  posts: ForumPostWithProfile[]
+  loading: boolean
+  refetch: () => void
+} {
+  const [posts, setPosts] = useState<ForumPostWithProfile[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetch = useCallback(async () => {
+    const client = supabase
+    if (!client) {
+      setPosts([])
+      setLoading(false)
+      return
+    }
+    const { data } = await client
+      .from('forum_posts')
+      .select('*, profiles(username)')
+      .order('created_at', { ascending: false }) as {
+      data: ForumPostWithProfile[] | null
+    }
+    setPosts(data ?? [])
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    fetch()
+  }, [fetch])
+
+  return { posts, loading, refetch: fetch }
+}
+
+export function useInsertForumPost(profileId: string | null): {
+  insert: (topic: string, body: string) => Promise<void>
+  inserting: boolean
+  error: string | null
+} {
+  const [inserting, setInserting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const insert = useCallback(
+    async (topic: string, body: string) => {
+      if (!profileId || !supabase) return
+      setError(null)
+      setInserting(true)
+      try {
+        const { error: e } = await supabase.from('forum_posts').insert({
+          profile_id: profileId,
+          topic: topic.trim(),
+          body: body.trim(),
+        })
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to post')
+        throw err
+      } finally {
+        setInserting(false)
+      }
+    },
+    [profileId]
+  )
+
+  return { insert, inserting, error }
+}
+
+export function useUpdateForumPost(profileId: string | null): {
+  update: (postId: string, topic: string, body: string) => Promise<void>
+  updating: boolean
+  error: string | null
+} {
+  const [updating, setUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const update = useCallback(
+    async (postId: string, topic: string, body: string) => {
+      if (!profileId || !supabase) return
+      setError(null)
+      setUpdating(true)
+      try {
+        const { error: e } = await supabase
+          .from('forum_posts')
+          .update({ topic: topic.trim(), body: body.trim() })
+          .eq('id', postId)
+          .eq('profile_id', profileId)
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update post')
+        throw err
+      } finally {
+        setUpdating(false)
+      }
+    },
+    [profileId]
+  )
+
+  return { update, updating, error }
+}
+
+export function useDeleteForumPost(profileId: string | null): {
+  deletePost: (postId: string) => Promise<void>
+  deleting: boolean
+  error: string | null
+} {
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const deletePost = useCallback(
+    async (postId: string) => {
+      if (!profileId || !supabase) return
+      setError(null)
+      setDeleting(true)
+      try {
+        const { error: e } = await supabase
+          .from('forum_posts')
+          .delete()
+          .eq('id', postId)
+          .eq('profile_id', profileId)
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete post')
+        throw err
+      } finally {
+        setDeleting(false)
+      }
+    },
+    [profileId]
+  )
+
+  return { deletePost, deleting, error }
 }
 
 export type BabyDevelopmentInfo = {

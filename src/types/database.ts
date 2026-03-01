@@ -51,7 +51,17 @@ export interface Mood {
   id: string
   mom_id: string
   mood: MoodRating
+  emotion?: string | null
+  mood_context?: string | null
   recorded_at: string
+}
+
+export interface ForumPost {
+  id: string
+  profile_id: string
+  topic: string
+  body: string
+  created_at: string
 }
 
 export interface MotherDiet {
@@ -116,6 +126,11 @@ export type BabyInsert = Omit<Baby, 'id' | 'created_at' | 'updated_at'> & {
 export type MoodInsert = Omit<Mood, 'id' | 'recorded_at'> & {
   id?: string
   recorded_at?: string
+}
+
+export type ForumPostInsert = Omit<ForumPost, 'id' | 'created_at'> & {
+  id?: string
+  created_at?: string
 }
 
 export type MotherDietInsert = Omit<MotherDiet, 'id' | 'recorded_at' | 'date'> & {
