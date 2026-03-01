@@ -1,80 +1,43 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { useTodayDiet, useBabyDietWeekly } from '../hooks/useDashboardData'
-import { supabase } from '../lib/supabase'
-import type { MotherDiet, BabyDiet } from '../types/database'
-import DietChart from '../components/dashboard/DietChart'
-import BabyDietChart from '../components/dashboard/BabyDietChart'
+import { useTodayBabyDietEntries } from '../hooks/useDashboardData'
+import { askGemini } from '../lib/gemini'
+import CalorieGoalChart from '../components/dashboard/CalorieGoalChart'
+import BabyMlGoalChart from '../components/dashboard/BabyMlGoalChart'
+import DietTodayList from '../components/dashboard/DietTodayList'
 import '../styles/TrackPage.css'
-
-const DIET_CHART_HEIGHT = 300
-const DIET_PIE_INNER = 70
-const DIET_PIE_OUTER = 115
 
 export default function Diet(): JSX.Element {
   const { mom, babies } = useAuth()
   const momId = mom?.id ?? null
   const babyIds = babies.map((b) => b.id)
-  const { data: dietData, loading: dietLoading } = useTodayDiet(momId)
-  const { data: babyDietData, loading: babyDietLoading } = useBabyDietWeekly(babyIds)
-  const [lastMomMeal, setLastMomMeal] = useState<MotherDiet | null>(null)
-  const [lastBabyMeal, setLastBabyMeal] = useState<BabyDiet | null>(null)
+  const { entries: todayBabyEntries, loading: todayBabyLoading } = useTodayBabyDietEntries(babyIds)
+  const [dietPlanPrompt, setDietPlanPrompt] = useState('')
+  const [dietPlanResult, setDietPlanResult] = useState<string | null>(null)
+  const [dietPlanLoading, setDietPlanLoading] = useState(false)
+  const [dietPlanError, setDietPlanError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const client = supabase
-    if (!client || !momId) {
-      setLastMomMeal(null)
+  const handleGetDietPlan = async () => {
+    setDietPlanError(null)
+    setDietPlanResult(null)
+    const userInput = dietPlanPrompt.trim()
+    if (!userInput) {
+      setDietPlanError('Please describe your goals or situation first.')
       return
     }
-    client
-      .from('mother_diet')
-      .select('*')
-      .eq('mom_id', momId)
-      .order('recorded_at', { ascending: false })
-      .limit(1)
-      .single()
-      .then(({ data }) => setLastMomMeal(data ?? null))
-  }, [momId])
+    setDietPlanLoading(true)
+    try {
+      const systemPrompt = `You are a supportive nutrition assistant for a postpartum / new parent app. The user will describe their diet goals or situation. Give a brief, practical, personalized response: meal ideas, calorie guidance, or tips. Keep it encouraging and concise (a few short paragraphs or bullet points). Do not give medical advice; suggest they speak to a doctor for specific conditions.
 
-  useEffect(() => {
-    const client = supabase
-    const babyIds = babies.map((b) => b.id)
-    if (!client || babyIds.length === 0) {
-      setLastBabyMeal(null)
-      return
+User's message: ${userInput}`
+      const reply = await askGemini(systemPrompt)
+      setDietPlanResult(reply)
+    } catch (err) {
+      setDietPlanError(err instanceof Error ? err.message : 'Could not get suggestions.')
+    } finally {
+      setDietPlanLoading(false)
     }
-    client
-      .from('baby_diet')
-      .select('*')
-      .in('baby_id', babyIds)
-      .order('recorded_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => setLastBabyMeal(data ?? null))
-  }, [babies])
-
-  const formatMeal = (row: MotherDiet | null): string => {
-    if (!row) return '—'
-    const parts = [row.food]
-    if (row.meal) parts.push(row.meal)
-    const q = row.food_quality
-    if (q != null) {
-      if (q <= 2) parts.push('Poor')
-      else if (q <= 4) parts.push('Good')
-      else parts.push('Great')
-    }
-    const d = new Date(row.recorded_at)
-    parts.push(d.toLocaleDateString())
-    return parts.join(' · ')
-  }
-
-  const formatBabyMeal = (row: BabyDiet | null): string => {
-    if (!row) return '—'
-    const parts = [row.food || 'Meal', row.bottle || ''].filter(Boolean)
-    const d = new Date(row.recorded_at)
-    parts.push(d.toLocaleDateString())
-    return parts.length ? parts.join(' · ') : '—'
   }
 
   return (
@@ -86,27 +49,17 @@ export default function Diet(): JSX.Element {
       <main className="app-main track-page">
         <div className="track-charts">
           <div className="track-chart-card track-chart-card--diet">
-            <h3 className="track-chart-title">Mom – today</h3>
-            <DietChart
-              data={dietData}
-              loading={dietLoading}
-              height={DIET_CHART_HEIGHT}
-              innerRadius={DIET_PIE_INNER}
-              outerRadius={DIET_PIE_OUTER}
-            />
+            <h3 className="track-chart-title">Mom – daily calorie goal</h3>
+            <CalorieGoalChart momId={momId} />
           </div>
           <div className="track-chart-card track-chart-card--diet">
-            <h3 className="track-chart-title">Baby – this week</h3>
+            <h3 className="track-chart-title">Baby – today&apos;s intake</h3>
             {babies.length === 0 ? (
               <div className="track-chart-placeholder">
                 Add a baby to track
               </div>
             ) : (
-              <BabyDietChart
-                data={babyDietData}
-                loading={babyDietLoading}
-                height={DIET_CHART_HEIGHT}
-              />
+              <BabyMlGoalChart babyIds={babyIds} />
             )}
           </div>
         </div>
@@ -120,19 +73,74 @@ export default function Diet(): JSX.Element {
           </Link>
         </div>
 
-        <section className="track-last-logged" aria-label="Last logged meals">
-          <div>
-            <p className="track-last-label">Last mom meal</p>
-            <p className={`track-last-value ${!lastMomMeal ? 'track-last-empty' : ''}`}>
-              {formatMeal(lastMomMeal)}
-            </p>
+        <section className="diet-today-logs" aria-label="Today's diet logs">
+          <h3 className="diet-today-logs-title">Today&apos;s logs</h3>
+          <div className="diet-today-logs-grid">
+            <div className="diet-today-logs-col">
+              <h4 className="diet-today-logs-col-title">Mom</h4>
+              <DietTodayList momId={momId} />
+            </div>
+            <div className="diet-today-logs-col">
+              <h4 className="diet-today-logs-col-title">Baby</h4>
+              {todayBabyLoading ? (
+                <p className="diet-today-logs-loading">Loading…</p>
+              ) : todayBabyEntries.length === 0 ? (
+                <p className="diet-today-logs-empty">No feedings logged today.</p>
+              ) : (
+                <ul className="diet-log diet-log--baby" aria-label="Baby's feedings today">
+                  {todayBabyEntries.map((entry) => (
+                    <li key={entry.id} className="diet-log-item">
+                      <span className="diet-log-time">
+                        {new Date(entry.recorded_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                      <span className="diet-log-food">{entry.food?.trim() || 'Feeding'}</span>
+                      {entry.bottle && (
+                        <span className="diet-log-bottle">{entry.bottle}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="track-last-label">Last baby meal</p>
-            <p className={`track-last-value ${!lastBabyMeal ? 'track-last-empty' : ''}`}>
-              {formatBabyMeal(lastBabyMeal)}
-            </p>
+        </section>
+
+        <section className="diet-plan-section" aria-label="Diet plan suggestions">
+          <h3 className="diet-plan-title">Get a personalized diet plan</h3>
+          <p className="diet-plan-description">
+            Tell us a bit about your goals or situation (e.g. breastfeeding, calorie target, dietary restrictions), and we&apos;ll suggest a plan.
+          </p>
+          <div className="form-group">
+            <label htmlFor="diet-plan-prompt" className="sr-only">
+              Your goals or situation
+            </label>
+            <textarea
+              id="diet-plan-prompt"
+              className="diet-plan-input"
+              placeholder="e.g. I'm breastfeeding and want to eat around 2000 cal. I don't eat dairy."
+              value={dietPlanPrompt}
+              onChange={(e) => setDietPlanPrompt(e.target.value)}
+              rows={3}
+              disabled={dietPlanLoading}
+            />
           </div>
+          <button
+            type="button"
+            className="track-btn diet-plan-btn"
+            onClick={handleGetDietPlan}
+            disabled={dietPlanLoading}
+          >
+            {dietPlanLoading ? 'Getting suggestions…' : 'Get diet plan suggestions'}
+          </button>
+          {dietPlanError && (
+            <p className="form-error diet-plan-error">{dietPlanError}</p>
+          )}
+          {dietPlanResult && (
+            <div className="diet-plan-result" role="region" aria-label="Diet plan suggestions">
+              <h4 className="diet-plan-result-title">Suggestions for you</h4>
+              <div className="diet-plan-result-text">{dietPlanResult}</div>
+            </div>
+          )}
         </section>
       </main>
     </>

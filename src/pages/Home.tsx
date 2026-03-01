@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useWeeklySleep,
-  useTodayDiet,
+  useTodayDietCalories,
+  useTodayBabyDietMl,
   useLatestMood,
   useBabyDevelopment,
 } from '../hooks/useDashboardData'
 import SleepChart from '../components/dashboard/SleepChart'
-import DietChart from '../components/dashboard/DietChart'
+import CalorieGoalChart from '../components/dashboard/CalorieGoalChart'
+import BabyMlGoalChart from '../components/dashboard/BabyMlGoalChart'
 import MoodSlide from '../components/dashboard/MoodSlide'
 import DevelopmentSlide from '../components/dashboard/DevelopmentSlide'
 
@@ -37,7 +39,8 @@ export default function Home(): JSX.Element {
     mom?.id ?? null,
     babyIds
   )
-  const { data: dietData, loading: dietLoading } = useTodayDiet(mom?.id ?? null)
+  useTodayDietCalories(mom?.id ?? null)
+  useTodayBabyDietMl(babyIds)
   const { mood, loading: moodLoading } = useLatestMood(mom?.id ?? null)
   const { data: devData, loading: devLoading } = useBabyDevelopment(
     firstBaby?.id ?? null,
@@ -65,15 +68,23 @@ export default function Home(): JSX.Element {
                   height={340}
                 />
               </div>
-              <div className="slideshow-slide">
-                <DietChart
-                  data={dietData}
-                  loading={dietLoading}
-                  height={340}
-                  innerRadius={65}
-                  outerRadius={110}
-                  variant="slideshow"
-                />
+              <div className="slideshow-slide slideshow-slide--diet-pair">
+                <div className="slideshow-diet-pair">
+                  <div className="slideshow-diet-cell">
+                    <CalorieGoalChart momId={mom?.id ?? null} variant="slideshow" />
+                    <p className="slideshow-diet-label">Mom – daily calorie goal</p>
+                  </div>
+                  <div className="slideshow-diet-cell">
+                    {babyIds.length === 0 ? (
+                      <div className="dashboard-slide dashboard-slide--empty">
+                        <p>Add a baby to track</p>
+                      </div>
+                    ) : (
+                      <BabyMlGoalChart babyIds={babyIds} variant="slideshow" />
+                    )}
+                    <p className="slideshow-diet-label">Baby – today&apos;s intake (mL)</p>
+                  </div>
+                </div>
               </div>
               <div className="slideshow-slide">
                 <MoodSlide mood={mood} loading={moodLoading} />
