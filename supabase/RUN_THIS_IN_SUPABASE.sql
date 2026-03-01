@@ -1,8 +1,9 @@
 -- Run this in Supabase Dashboard → SQL Editor
 -- Creates forum_posts and adds emotion to mood
 
--- 1. Add emotion to mood (optional - for "How do you feel?" text)
+-- 1. Add emotion and context to mood
 alter table public.mood add column if not exists emotion text;
+alter table public.mood add column if not exists mood_context text;
 
 -- 2. Create forum_posts table
 create table if not exists public.forum_posts (

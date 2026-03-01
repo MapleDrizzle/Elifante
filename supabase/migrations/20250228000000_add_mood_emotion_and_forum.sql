@@ -1,5 +1,7 @@
 -- Add emotion text to mood (user's description of how they feel)
 alter table public.mood add column if not exists emotion text;
+-- Optional context: what's affecting you (Sleep, Baby, Support, etc.)
+alter table public.mood add column if not exists mood_context text;
 
 -- Forum posts for community discussion
 create table if not exists public.forum_posts (

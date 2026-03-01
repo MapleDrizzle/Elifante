@@ -1,3 +1,24 @@
+/* Mental page header */
+.mental-header .mental-tagline {
+  margin: 0.25rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mental-header .mental-subtext {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.mental-checkin-reminder {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
 /* Mental page layout */
 .mental-page {
   max-width: 1200px;
@@ -66,11 +87,26 @@
   color: var(--text);
 }
 
+.mental-context-tag {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
 .mental-emotion-text {
   margin: 0;
   font-size: 0.95rem;
   color: var(--muted);
   font-style: italic;
+}
+
+/* Pattern summary */
+.mental-pattern-card .mental-pattern-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  line-height: 1.5;
 }
 
 .mental-update-btn {
@@ -162,6 +198,22 @@
   outline-offset: 2px;
 }
 
+.mental-context-select {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.mental-context-select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .mental-form-actions {
   display: flex;
   gap: 0.75rem;
@@ -208,7 +260,34 @@
   color: #c44;
 }
 
-/* Past moods list */
+/* Past moods list – show ~3 at a time with scroll */
+.mental-mood-list-scroll {
+  max-height: 220px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) rgba(0, 0, 0, 0.1);
+  padding-right: 0.25rem;
+}
+
+.mental-mood-list-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.mental-mood-list-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.mental-mood-list-scroll::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.mental-mood-list-scroll::-webkit-scrollbar-thumb:hover {
+  background: #b06a6a;
+}
+
 .mental-mood-list {
   list-style: none;
   margin: 0;
@@ -252,13 +331,55 @@
   color: var(--text);
 }
 
+.mental-mood-item-context {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
 .mental-mood-item-emotion {
   font-size: 0.85rem;
   color: var(--muted);
   font-style: italic;
 }
 
+/* Support block */
+.mental-support-block {
+  border-left: 4px solid var(--accent);
+}
+
+.mental-support-text {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.mental-support-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.mental-support-link:hover {
+  text-decoration: underline;
+}
+
 /* Forum */
+.mental-forum-intro {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.mental-forum-suggestions {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .mental-forum-form {
   display: flex;
   flex-direction: column;

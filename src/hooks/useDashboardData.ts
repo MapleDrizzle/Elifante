@@ -357,11 +357,13 @@ export function useBabyDietWeekly(babyIds: string[]): {
 export function useLatestMood(momId: string | null): {
   mood: number | null
   emotion: string | null
+  moodContext: string | null
   recordedAt: string | null
   loading: boolean
 } {
   const [mood, setMood] = useState<number | null>(null)
   const [emotion, setEmotion] = useState<string | null>(null)
+  const [moodContext, setMoodContext] = useState<string | null>(null)
   const [recordedAt, setRecordedAt] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -370,6 +372,7 @@ export function useLatestMood(momId: string | null): {
     if (!client || !momId) {
       setMood(null)
       setEmotion(null)
+      setMoodContext(null)
       setRecordedAt(null)
       setLoading(false)
       return
@@ -385,6 +388,7 @@ export function useLatestMood(momId: string | null): {
         .maybeSingle() as { data: Mood | null }
       setMood(data?.mood ?? null)
       setEmotion(data?.emotion ?? null)
+      setMoodContext(data?.mood_context ?? null)
       setRecordedAt(data?.recorded_at ?? null)
       setLoading(false)
     }
@@ -392,7 +396,7 @@ export function useLatestMood(momId: string | null): {
     fetchMood()
   }, [momId])
 
-  return { mood, emotion, recordedAt, loading }
+  return { mood, emotion, moodContext, recordedAt, loading }
 }
 
 export function useMoodHistory(momId: string | null): {
@@ -427,7 +431,7 @@ export function useMoodHistory(momId: string | null): {
 }
 
 export function useInsertMood(momId: string | null): {
-  insert: (mood: number, emotion?: string | null) => Promise<void>
+  insert: (mood: number, emotion?: string | null, moodContext?: string | null) => Promise<void>
   inserting: boolean
   error: string | null
 } {
@@ -435,17 +439,24 @@ export function useInsertMood(momId: string | null): {
   const [error, setError] = useState<string | null>(null)
 
   const insert = useCallback(
-    async (rating: number, _emotionText?: string | null) => {
+    async (rating: number, emotionText?: string | null, context?: string | null) => {
       if (!momId || !supabase) return
       setError(null)
       setInserting(true)
       try {
-        // Use mom_id + mood only; add emotion column via migration for emotion support
-        const { error: e } = await supabase.from('mood').insert({
+        const row: { mom_id: string; mood: number; emotion?: string | null; mood_context?: string | null } = {
           mom_id: momId,
           mood: rating,
-        })
-        if (e) throw e
+        }
+        if (emotionText != null && String(emotionText).trim() !== '') row.emotion = emotionText.trim()
+        if (context != null && String(context).trim() !== '') row.mood_context = context.trim()
+        const { error: e } = await supabase.from('mood').insert(row)
+        if (e) {
+          if (e.message?.includes('emotion') || e.message?.includes('mood_context') || e.code === '42703') {
+            const { error: e2 } = await supabase.from('mood').insert({ mom_id: momId, mood: rating })
+            if (e2) throw e2
+          } else throw e
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to log mood')
         throw err

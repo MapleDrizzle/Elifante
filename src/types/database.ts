@@ -52,6 +52,7 @@ export interface Mood {
   mom_id: string
   mood: MoodRating
   emotion?: string | null
+  mood_context?: string | null
   recorded_at: string
 }
 
