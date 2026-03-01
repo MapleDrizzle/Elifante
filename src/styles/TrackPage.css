@@ -211,3 +211,103 @@
   font-size: 0.875rem;
   color: #b91c1c;
 }
+
+/* Diet chart: quality legend and click-to-show logs */
+.diet-chart-with-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.diet-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.diet-chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.diet-chart-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.diet-chart-logs {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: left;
+}
+
+.diet-chart-logs-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.diet-chart-logs-close {
+  padding: 0.2rem 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.diet-chart-logs-close:hover {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.diet-chart-logs-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.diet-chart-logs-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.diet-chart-logs-item {
+  margin-bottom: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.diet-chart-logs-food {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.diet-chart-logs-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Slideshow diet chart: labels stand out and show immediately */
+.diet-chart--slideshow .diet-chart-slideshow-label text {
+  letter-spacing: 0.02em;
+  filter: drop-shadow(0 0 1px var(--card)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+}

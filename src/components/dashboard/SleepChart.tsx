@@ -54,7 +54,7 @@ export default function SleepChart({
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
           <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-          <YAxis domain={[0, 24]} tick={{ fontSize: 12 }} unit="h" />
+          <YAxis domain={[0, 12]} tick={{ fontSize: 12 }} unit="h" />
           <Tooltip formatter={(v: number) => [`${v} h`, '']} />
           {showMom && showBaby && <Legend />}
           {showMom && (

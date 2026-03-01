@@ -59,15 +59,20 @@ export default function Home(): JSX.Element {
               style={{ transform: `translateX(-${slideIndex * 100}%)` }}
             >
               <div className="slideshow-slide">
-                <SleepChart data={sleepData} loading={sleepLoading} />
+                <SleepChart
+                  data={sleepData}
+                  loading={sleepLoading}
+                  height={340}
+                />
               </div>
               <div className="slideshow-slide">
                 <DietChart
                   data={dietData}
                   loading={dietLoading}
-                  height={300}
-                  innerRadius={55}
-                  outerRadius={95}
+                  height={340}
+                  innerRadius={65}
+                  outerRadius={110}
+                  variant="slideshow"
                 />
               </div>
               <div className="slideshow-slide">

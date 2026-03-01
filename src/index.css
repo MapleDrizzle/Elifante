@@ -6,6 +6,11 @@
   --card: #ffffff;
   --radius: 12px;
   --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --border: rgba(0, 0, 0, 0.08);
+  /* Diet chart quality (same hue as accent: dark → accent → light) */
+  --diet-poor: #8b5252;
+  --diet-good: #c47b7b;
+  --diet-great: #e8b8b8;
 }
 
 * {

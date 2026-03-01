@@ -85,13 +85,13 @@ export function useWeeklySleep(momId: string | null, babyIds: string[]): {
 }
 
 const MEAL_ORDER: Meal[] = ['breakfast', 'lunch', 'dinner', 'snack', 'other']
-/** Only these are shown in the diet chart (no snack/other). */
-const MEAL_ORDER_DISPLAY: Meal[] = ['breakfast', 'lunch', 'dinner']
 
+/** Today's mother_diet rows for showing logs when clicking a segment. */
 export type DietSegment = {
+  id: string
   name: string
   value: number
-  filled: boolean
+  quality: number
 }
 
 export function useTodayDiet(momId: string | null): {
@@ -104,13 +104,7 @@ export function useTodayDiet(momId: string | null): {
   useEffect(() => {
     const client = supabase
     if (!client || !momId) {
-      setData(
-        MEAL_ORDER_DISPLAY.map((m) => ({
-          name: m.charAt(0).toUpperCase() + m.slice(1),
-          value: 0,
-          filled: false,
-        }))
-      )
+      setData([])
       setLoading(false)
       return
     }
@@ -120,28 +114,18 @@ export function useTodayDiet(momId: string | null): {
     const fetchDiet = async (): Promise<void> => {
       const { data: rows } = await client
         .from('mother_diet')
-        .select('meal')
+        .select('id, food, food_quality')
         .eq('mom_id', momId)
-        .eq('date', today) as { data: MotherDiet[] | null }
+        .eq('date', today)
+        .order('recorded_at', { ascending: true }) as { data: (Pick<MotherDiet, 'id' | 'food' | 'food_quality'>)[] | null }
 
-      const counts: Record<string, number> = {}
-      MEAL_ORDER.forEach((m) => {
-        counts[m] = 0
-      })
-      ;(rows ?? []).forEach((r) => {
-        const meal = (r.meal ?? 'other') as Meal
-        if (MEAL_ORDER.includes(meal)) counts[meal] += 1
-        else counts.other += 1
-      })
-
-      const total = Object.values(counts).reduce((a, b) => a + b, 0)
-      setData(
-        MEAL_ORDER_DISPLAY.map((meal) => ({
-          name: meal.charAt(0).toUpperCase() + meal.slice(1),
-          value: total > 0 ? counts[meal] : 0,
-          filled: counts[meal] > 0,
-        }))
-      )
+      const segments: DietSegment[] = (rows ?? []).map((r) => ({
+        id: r.id,
+        name: r.food?.trim() || 'Meal',
+        value: 1,
+        quality: Math.max(1, Math.min(5, r.food_quality ?? 3)),
+      }))
+      setData(segments)
       setLoading(false)
     }
 
@@ -149,6 +133,37 @@ export function useTodayDiet(momId: string | null): {
   }, [momId])
 
   return { data, loading }
+}
+
+/** Today's mother_diet rows for showing logs when clicking a segment. */
+export function useTodayDietEntries(momId: string | null): {
+  entries: MotherDiet[]
+  loading: boolean
+} {
+  const [entries, setEntries] = useState<MotherDiet[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const client = supabase
+    if (!client || !momId) {
+      setEntries([])
+      setLoading(false)
+      return
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    client
+      .from('mother_diet')
+      .select('id, mom_id, food, meal, food_quality, recorded_at, date')
+      .eq('mom_id', momId)
+      .eq('date', today)
+      .order('recorded_at', { ascending: true })
+      .then(({ data }) => {
+        setEntries((data as MotherDiet[]) ?? [])
+        setLoading(false)
+      })
+  }, [momId])
+
+  return { entries, loading }
 }
 
 export type BabyDayDiet = {
