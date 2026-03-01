@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import '../styles/TrackPage.css'
 import {
   useWeeklySleep,
   useTodayDietCalories,
@@ -11,6 +12,7 @@ import CalorieGoalChart from '../components/dashboard/CalorieGoalChart'
 import BabyMlGoalChart from '../components/dashboard/BabyMlGoalChart'
 import MoodSlide from '../components/dashboard/MoodSlide'
 import DevelopmentSlide from '../components/dashboard/DevelopmentSlide'
+import ChatBox from '../components/ChatBox'
 
 const SLIDE_LABELS = ['Sleep', 'Diet', 'Mood', 'Development']
 const AUTO_SLIDE_MS = 6000
@@ -47,7 +49,7 @@ export default function Home(): JSX.Element {
   )
 
   return (
-    <>
+    <div className="home-page">
       <header className="app-header app-header--home">
         <h1 className="home-greeting">Hello, {displayName}!</h1>
         <p className="app-header-tagline">Your postpartum companion</p>
@@ -63,7 +65,7 @@ export default function Home(): JSX.Element {
                 <SleepChart
                   data={sleepData}
                   loading={sleepLoading}
-                  height={340}
+                  height={360}
                 />
               </div>
               <div className="slideshow-slide slideshow-slide--diet-pair">
@@ -124,7 +126,8 @@ export default function Home(): JSX.Element {
             </button>
           </div>
         </section>
+        <ChatBox />
       </main>
-    </>
+    </div>
   )
 }

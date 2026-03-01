@@ -27,7 +27,7 @@ export default function BabyMlGoalChart({ babyIds, variant = 'default' }: Props)
         <p className="calorie-goal-label">Today&apos;s intake (formula / breast milk)</p>
       )}
       <div className="calorie-goal-chart-wrap">
-        <ResponsiveContainer width="100%" height={variant === 'slideshow' ? '100%' : 220}>
+        <ResponsiveContainer width={variant === 'slideshow' ? 180 : '100%'} height={variant === 'slideshow' ? 180 : 220}>
           <RadialBarChart
             cx="50%"
             cy="50%"
