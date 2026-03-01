@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Sleep, MotherDiet, Mood, Development } from '../types/database'
-import type { Meal } from '../types/database'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -84,8 +83,6 @@ export function useWeeklySleep(momId: string | null, babyIds: string[]): {
   return { data, loading }
 }
 
-const MEAL_ORDER: Meal[] = ['breakfast', 'lunch', 'dinner', 'snack', 'other']
-
 /** Today's mother_diet rows for showing logs when clicking a segment. */
 export type DietSegment = {
   id: string
@@ -135,7 +132,6 @@ export function useTodayDiet(momId: string | null): {
   return { data, loading }
 }
 
-/** Today's mother_diet rows for showing logs when clicking a segment. */
 export function useTodayDietEntries(momId: string | null): {
   entries: MotherDiet[]
   loading: boolean
@@ -164,6 +160,48 @@ export function useTodayDietEntries(momId: string | null): {
   }, [momId])
 
   return { entries, loading }
+}
+
+const CALORIE_GOAL_DEFAULT = 2000
+
+/** Today's total calories for mom (sum of mother_diet.calories for today). */
+export function useTodayDietCalories(momId: string | null): {
+  totalCalories: number
+  goal: number
+  loading: boolean
+} {
+  const [totalCalories, setTotalCalories] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const client = supabase
+    if (!client || !momId) {
+      setTotalCalories(0)
+      setLoading(false)
+      return
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    client
+      .from('mother_diet')
+      .select('calories')
+      .eq('mom_id', momId)
+      .eq('date', today)
+      .then(({ data }) => {
+        const total = (data ?? []).reduce(
+          (sum: number, row: { calories?: number | null }) =>
+            sum + (typeof row.calories === 'number' ? row.calories : 0),
+          0
+        )
+        setTotalCalories(total)
+        setLoading(false)
+      })
+  }, [momId])
+
+  return {
+    totalCalories: Math.round(totalCalories),
+    goal: CALORIE_GOAL_DEFAULT,
+    loading,
+  }
 }
 
 export type BabyDayDiet = {
