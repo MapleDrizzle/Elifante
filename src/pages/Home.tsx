@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import MoodModal from '../components/MoodModal'
+import BabyDevAddModal from '../components/BabyDevAddModal'
+import BehaviorTrendsSection from '../components/BehaviorTrendsSection'
 import '../styles/TrackPage.css'
 import {
   useWeeklySleep,
@@ -20,6 +24,8 @@ const AUTO_SLIDE_MS = 6000
 export default function Home(): JSX.Element {
   const { displayName, mom, babies } = useAuth()
   const [slideIndex, setSlideIndex] = useState(0)
+  const [showMoodModal, setShowMoodModal] = useState(false)
+  const [showBabyDevModal, setShowBabyDevModal] = useState(false)
 
   const goNext = useCallback(() => {
     setSlideIndex((i) => (i + 1) % SLIDE_LABELS.length)
@@ -65,7 +71,7 @@ export default function Home(): JSX.Element {
                 <SleepChart
                   data={sleepData}
                   loading={sleepLoading}
-                  height={360}
+                  height={180}
                 />
               </div>
               <div className="slideshow-slide slideshow-slide--diet-pair">
@@ -126,6 +132,50 @@ export default function Home(): JSX.Element {
             </button>
           </div>
         </section>
+        <div className="slideshow-below">
+          <div className="slideshow-actions">
+            <Link to="/diet/add-mom" className="track-btn slideshow-action-btn">
+              Add mom meal
+            </Link>
+            <Link to="/diet/add-baby" className="track-btn slideshow-action-btn">
+              Add baby meal
+            </Link>
+            {firstBaby ? (
+              <button
+                type="button"
+                className="track-btn slideshow-action-btn"
+                onClick={() => setShowBabyDevModal(true)}
+              >
+                Add baby development
+              </button>
+            ) : (
+              <Link to="/baby-development" className="track-btn slideshow-action-btn">
+                Add baby development
+              </Link>
+            )}
+            <button
+              type="button"
+              className="track-btn slideshow-action-btn"
+              onClick={() => setShowMoodModal(true)}
+            >
+              Update mood
+            </button>
+          </div>
+          <BehaviorTrendsSection momId={mom?.id ?? null} babyIds={babyIds} />
+        </div>
+        {showMoodModal && (
+          <MoodModal
+            momId={mom?.id ?? null}
+            onClose={() => setShowMoodModal(false)}
+          />
+        )}
+        {showBabyDevModal && firstBaby && (
+          <BabyDevAddModal
+            babyId={firstBaby.id}
+            babyName={firstBaby.name}
+            onClose={() => setShowBabyDevModal(false)}
+          />
+        )}
         <ChatBox />
       </main>
     </div>
