@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Sleep, MotherDiet, BabyDiet, Mood, Development, ForumPost } from '../types/database'
-import type { Meal } from '../types/database'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -436,7 +435,7 @@ export function useInsertMood(momId: string | null): {
   const [error, setError] = useState<string | null>(null)
 
   const insert = useCallback(
-    async (rating: number, emotionText?: string | null) => {
+    async (rating: number, _emotionText?: string | null) => {
       if (!momId || !supabase) return
       setError(null)
       setInserting(true)
