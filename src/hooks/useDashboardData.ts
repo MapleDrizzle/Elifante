@@ -539,6 +539,72 @@ export function useInsertForumPost(profileId: string | null): {
   return { insert, inserting, error }
 }
 
+export function useUpdateForumPost(profileId: string | null): {
+  update: (postId: string, topic: string, body: string) => Promise<void>
+  updating: boolean
+  error: string | null
+} {
+  const [updating, setUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const update = useCallback(
+    async (postId: string, topic: string, body: string) => {
+      if (!profileId || !supabase) return
+      setError(null)
+      setUpdating(true)
+      try {
+        const { error: e } = await supabase
+          .from('forum_posts')
+          .update({ topic: topic.trim(), body: body.trim() })
+          .eq('id', postId)
+          .eq('profile_id', profileId)
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update post')
+        throw err
+      } finally {
+        setUpdating(false)
+      }
+    },
+    [profileId]
+  )
+
+  return { update, updating, error }
+}
+
+export function useDeleteForumPost(profileId: string | null): {
+  deletePost: (postId: string) => Promise<void>
+  deleting: boolean
+  error: string | null
+} {
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const deletePost = useCallback(
+    async (postId: string) => {
+      if (!profileId || !supabase) return
+      setError(null)
+      setDeleting(true)
+      try {
+        const { error: e } = await supabase
+          .from('forum_posts')
+          .delete()
+          .eq('id', postId)
+          .eq('profile_id', profileId)
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to delete post')
+        throw err
+      } finally {
+        setDeleting(false)
+      }
+    },
+    [profileId]
+  )
+
+  return { deletePost, deleting, error }
+}
+
 export type BabyDevelopmentInfo = {
   weightKg: number | null
   heightCm: number | null

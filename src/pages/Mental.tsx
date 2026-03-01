@@ -1,4 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { useAuth } from '../contexts/AuthContext'
 import {
   useLatestMood,
@@ -6,9 +15,13 @@ import {
   useInsertMood,
   useForumPosts,
   useInsertForumPost,
+  useUpdateForumPost,
+  useDeleteForumPost,
 } from '../hooks/useDashboardData'
 import '../styles/TrackPage.css'
 import '../styles/MentalPage.css'
+
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 const MOOD_IMAGES = [
   '/images/1_mood_logo.png',
@@ -71,6 +84,11 @@ export default function Mental(): JSX.Element {
   const { insert: insertMood, inserting: moodInserting, error: moodError } = useInsertMood(momId)
   const { posts, loading: forumLoading, refetch: refetchForum } = useForumPosts()
   const { insert: insertPost, inserting: postInserting, error: postError } = useInsertForumPost(profileId)
+  const { update: updatePost, updating: postUpdating, error: updateError } = useUpdateForumPost(profileId)
+  const { deletePost, deleting: postDeleting, error: deleteError } = useDeleteForumPost(profileId)
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  const [editTopic, setEditTopic] = useState('')
+  const [editBody, setEditBody] = useState('')
 
   const [showMoodForm, setShowMoodForm] = useState(false)
   const [moodRating, setMoodRating] = useState<number>(4)
@@ -78,6 +96,7 @@ export default function Mental(): JSX.Element {
   const [moodContextValue, setMoodContextValue] = useState('')
   const [forumTopic, setForumTopic] = useState('')
   const [forumBody, setForumBody] = useState('')
+  const [showHeardMessage, setShowHeardMessage] = useState(false)
 
   const handleMoodSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,11 +109,18 @@ export default function Mental(): JSX.Element {
       setShowMoodForm(false)
       setEmotionText('')
       setMoodContextValue('')
+      setShowHeardMessage(true)
       refetchMoods()
     } catch {
       // error handled in hook
     }
   }
+
+  useEffect(() => {
+    if (!showHeardMessage) return
+    const t = setTimeout(() => setShowHeardMessage(false), 3500)
+    return () => clearTimeout(t)
+  }, [showHeardMessage])
 
   const handleForumSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -103,6 +129,42 @@ export default function Mental(): JSX.Element {
       await insertPost(forumTopic.trim(), forumBody.trim())
       setForumTopic('')
       setForumBody('')
+      refetchForum()
+    } catch {
+      // error handled in hook
+    }
+  }
+
+  const startEdit = (p: { id: string; topic: string; body: string }) => {
+    setEditingPostId(p.id)
+    setEditTopic(p.topic)
+    setEditBody(p.body)
+  }
+
+  const cancelEdit = () => {
+    setEditingPostId(null)
+    setEditTopic('')
+    setEditBody('')
+  }
+
+  const handleUpdatePost = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingPostId || !editTopic.trim() || !editBody.trim()) return
+    try {
+      await updatePost(editingPostId, editTopic.trim(), editBody.trim())
+      setEditingPostId(null)
+      setEditTopic('')
+      setEditBody('')
+      refetchForum()
+    } catch {
+      // error handled in hook
+    }
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    if (!window.confirm('Delete this post?')) return
+    try {
+      await deletePost(postId)
       refetchForum()
     } catch {
       // error handled in hook
@@ -119,6 +181,24 @@ export default function Mental(): JSX.Element {
     return { total: inWeek.length, betterDays }
   }, [moods])
 
+  const weeklyChartData = useMemo(() => {
+    const data: { day: string; date: string; mood: number; label: string }[] = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().slice(0, 10)
+      const dayLabel = DAY_LABELS[d.getDay()]
+      const moodsOnDay = moods.filter((m) => m.recorded_at.slice(0, 10) === dateStr)
+      const latest = moodsOnDay.length > 0
+        ? moodsOnDay.sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))[0]
+        : null
+      const moodVal = latest?.mood ?? 0
+      const label = latest ? getMoodDisplay(latest.mood).label : '—'
+      data.push({ day: dayLabel, date: dateStr, mood: moodVal, label })
+    }
+    return data
+  }, [moods])
+
   return (
     <>
       <header className="app-header mental-header">
@@ -128,16 +208,22 @@ export default function Mental(): JSX.Element {
           It&apos;s okay to not be okay. Tracking helps you notice patterns.
         </p>
         <p className="mental-checkin-reminder">
-          A quick check-in can help you notice how you&apos;re doing over time.
+          Log how you&apos;re doing today. Your feelings matter.
         </p>
       </header>
       <main className="app-main mental-page">
         <div className="mental-layout">
           {/* Left: Mood section */}
           <section className="mental-mood-section">
-            {/* Current mood card */}
+            {showHeardMessage && (
+              <p className="mental-heard-message" role="status">
+                Thanks for sharing. You&apos;re heard.
+              </p>
+            )}
+
+            {/* Current mood card – today’s check-in */}
             <div className="mental-current-mood mental-card">
-              <h3 className="mental-card-title">Current mood</h3>
+              <h3 className="mental-card-title">How are you today?</h3>
               {moodLoading ? (
                 <p className="mental-loading">Loading…</p>
               ) : currentMoodDisplay ? (
@@ -149,23 +235,26 @@ export default function Mental(): JSX.Element {
                     aria-hidden
                   />
                   <p className="mental-mood-label">{currentMoodDisplay.label}</p>
-                  {moodContext && (
-                    <p className="mental-context-tag">{moodContext}</p>
-                  )}
-                  {emotion && (
-                    <p className="mental-emotion-text">&ldquo;{emotion}&rdquo;</p>
+                  {(moodContext || emotion) && (
+                    <p className="mental-context-emotion-line">
+                      {moodContext && emotion
+                        ? `Affected by: ${moodContext}. In your words: ${emotion}`
+                        : moodContext
+                          ? `Affected by: ${moodContext}`
+                          : `In your words: ${emotion}`}
+                    </p>
                   )}
                   <button
                     type="button"
                     className="mental-update-btn"
                     onClick={() => setShowMoodForm(true)}
                   >
-                    Update mood
+                    Update today&apos;s mood
                   </button>
                 </div>
               ) : (
                 <div className="mental-current-empty">
-                  <p>No mood logged yet.</p>
+                  <p>Log how you&apos;re doing today.</p>
                   <button
                     type="button"
                     className="mental-update-btn"
@@ -177,30 +266,40 @@ export default function Mental(): JSX.Element {
               )}
             </div>
 
-            {/* Pattern summary */}
-            {moods.length > 0 && (
-              <div className="mental-pattern-card mental-card">
-                <h3 className="mental-card-title">This week</h3>
-                <p className="mental-pattern-text">
-                  {weekStats.total === 0 ? (
-                    'No check-ins this week yet.'
-                  ) : (
-                    <>
-                      You&apos;ve logged <strong>{weekStats.total}</strong> check-in
-                      {weekStats.total !== 1 ? 's' : ''} this week.
-                      {weekStats.betterDays > 0 && (
-                        <> <strong>{weekStats.betterDays}</strong> {weekStats.betterDays === 1 ? 'was' : 'were'} better days (Good or Happy).</>
-                      )}
-                    </>
-                  )}
-                </p>
-              </div>
-            )}
+            {/* Weekly trend chart */}
+            <div className="mental-week-chart mental-card">
+              <h3 className="mental-card-title">Your week at a glance</h3>
+              <p className="mental-chart-subtitle">Mood by day (1 = Mad, 5 = Happy)</p>
+              {historyLoading ? (
+                <p className="mental-loading">Loading…</p>
+              ) : (
+                <div className="mental-chart-wrap">
+                  <ResponsiveContainer width="100%" height={160}>
+                    <BarChart data={weeklyChartData} margin={{ top: 8, right: 8, left: 0, bottom: 4 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
+                      <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                      <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} tick={{ fontSize: 10 }} width={20} />
+                      <Tooltip
+                        formatter={(value: number) => [value === 0 ? 'No check-in' : getMoodDisplay(value).label, 'Mood']}
+                        labelFormatter={(_, payload) => (payload?.[0]?.payload?.date ? formatMoodTime(payload[0].payload.date + 'T12:00:00').split(',')[0] : '')}
+                      />
+                      <Bar
+                        dataKey="mood"
+                        fill="var(--accent)"
+                        radius={[4, 4, 0, 0]}
+                        name="Mood"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
 
             {/* Update mood form */}
             {showMoodForm && (
               <div className="mental-mood-form mental-card">
-                <h3 className="mental-card-title">Log your mood</h3>
+                <h3 className="mental-card-title">How are you doing today?</h3>
+                <p className="mental-form-subtext">Your check-in for today.</p>
                 <form onSubmit={handleMoodSubmit}>
                   <p className="mental-form-label">How are you feeling? (1–5)</p>
                   <div className="mental-mood-options">
@@ -265,7 +364,7 @@ export default function Mental(): JSX.Element {
                       className="mental-submit-btn"
                       disabled={moodInserting}
                     >
-                      {moodInserting ? 'Saving…' : 'Save mood'}
+                      {moodInserting ? 'Saving…' : 'Save check-in'}
                     </button>
                   </div>
                 </form>
@@ -274,7 +373,7 @@ export default function Mental(): JSX.Element {
 
             {/* Past moods */}
             <div className="mental-past-moods mental-card">
-              <h3 className="mental-card-title">Past moods</h3>
+              <h3 className="mental-card-title">Past check-ins</h3>
               {historyLoading ? (
                 <p className="mental-loading">Loading…</p>
               ) : moods.length === 0 ? (
@@ -315,26 +414,11 @@ export default function Mental(): JSX.Element {
                 </div>
               )}
             </div>
-
-            {/* Support block */}
-            <div className="mental-support-block mental-card">
-              <h3 className="mental-card-title">You&apos;re not alone</h3>
-              <p className="mental-support-text">
-                If you&apos;re struggling, talking to someone can help. Consider reaching out to a friend, partner, or a healthcare provider.
-              </p>
-              <a
-                href={SUPPORT_LINK}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mental-support-link"
-              >
-                {SUPPORT_LABEL}
-              </a>
-            </div>
           </section>
 
-          {/* Right: Forum */}
-          <section className="mental-forum-section mental-card">
+          {/* Right: Forum + Support */}
+          <section className="mental-forum-section">
+            <div className="mental-card">
             <h3 className="mental-card-title">Share with other moms</h3>
             <p className="mental-forum-intro">
               What helped you today? What&apos;s one small win? Post below.
@@ -351,7 +435,7 @@ export default function Mental(): JSX.Element {
               <textarea
                 className="mental-forum-body"
                 placeholder="What's one small win or something that helped?"
-                rows={4}
+                rows={3}
                 value={forumBody}
                 onChange={(e) => setForumBody(e.target.value)}
                 required
@@ -359,9 +443,9 @@ export default function Mental(): JSX.Element {
               <p className="mental-forum-suggestions">
                 Topic ideas: {FORUM_TOPIC_SUGGESTIONS.join(', ')}
               </p>
-              {postError && (
+              {(postError || updateError || deleteError) && (
                 <p className="mental-error" role="alert">
-                  {postError}
+                  {postError || updateError || deleteError}
                 </p>
               )}
               <button
@@ -381,21 +465,89 @@ export default function Mental(): JSX.Element {
                 <ul className="mental-post-list">
                   {posts.map((p) => (
                     <li key={p.id} className="mental-post-item">
-                      <h4 className="mental-post-topic">{p.topic}</h4>
-                      <p className="mental-post-body">{p.body}</p>
-                      <p className="mental-post-meta">
-                        {p.profiles?.username ?? 'Anonymous'} ·{' '}
-                        {new Date(p.created_at).toLocaleString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                        })}
-                      </p>
+                      {editingPostId === p.id ? (
+                        <form onSubmit={handleUpdatePost} className="mental-post-edit-form">
+                          <input
+                            type="text"
+                            className="mental-forum-topic mental-post-edit-input"
+                            value={editTopic}
+                            onChange={(e) => setEditTopic(e.target.value)}
+                            required
+                          />
+                          <textarea
+                            className="mental-forum-body mental-post-edit-input"
+                            rows={2}
+                            value={editBody}
+                            onChange={(e) => setEditBody(e.target.value)}
+                            required
+                          />
+                          <div className="mental-post-edit-actions">
+                            <button type="button" className="mental-post-btn mental-post-cancel" onClick={cancelEdit}>
+                              Cancel
+                            </button>
+                            <button type="submit" className="mental-post-btn mental-post-save" disabled={postUpdating}>
+                              {postUpdating ? 'Saving…' : 'Save'}
+                            </button>
+                          </div>
+                        </form>
+                      ) : (
+                        <>
+                          <div className="mental-post-item-header">
+                            <h4 className="mental-post-topic">{p.topic}</h4>
+                            {profileId === p.profile_id && (
+                              <div className="mental-post-actions">
+                                <button
+                                  type="button"
+                                  className="mental-post-btn mental-post-edit-btn"
+                                  onClick={() => startEdit(p)}
+                                  aria-label="Edit post"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="mental-post-btn mental-post-delete-btn"
+                                  onClick={() => handleDeletePost(p.id)}
+                                  aria-label="Delete post"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          <p className="mental-post-body">{p.body}</p>
+                          <p className="mental-post-meta">
+                            {p.profiles?.username ?? 'Anonymous'} ·{' '}
+                            {new Date(p.created_at).toLocaleString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
               )}
+            </div>
+            </div>
+
+            {/* Support block */}
+            <div className="mental-support-block mental-card">
+              <h3 className="mental-card-title">You&apos;re not alone</h3>
+              <p className="mental-support-text">
+                If you&apos;re struggling, talking to someone can help. Consider reaching out to a friend, partner, or a healthcare provider.
+              </p>
+              <a
+                href={SUPPORT_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mental-support-link"
+              >
+                {SUPPORT_LABEL}
+              </a>
             </div>
           </section>
         </div>

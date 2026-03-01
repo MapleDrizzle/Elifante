@@ -27,3 +27,14 @@ drop policy if exists "Users can insert own forum posts" on public.forum_posts;
 create policy "Users can insert own forum posts"
   on public.forum_posts for insert
   with check (auth.uid() = profile_id);
+
+drop policy if exists "Users can update own forum posts" on public.forum_posts;
+create policy "Users can update own forum posts"
+  on public.forum_posts for update
+  using (auth.uid() = profile_id)
+  with check (auth.uid() = profile_id);
+
+drop policy if exists "Users can delete own forum posts" on public.forum_posts;
+create policy "Users can delete own forum posts"
+  on public.forum_posts for delete
+  using (auth.uid() = profile_id);
