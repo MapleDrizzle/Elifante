@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Sleep, MotherDiet, Mood, Development } from '../types/database'
+import type { Sleep, MotherDiet, BabyDiet, Mood, Development } from '../types/database'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -149,7 +149,7 @@ export function useTodayDietEntries(momId: string | null): {
     const today = new Date().toISOString().slice(0, 10)
     client
       .from('mother_diet')
-      .select('id, mom_id, food, meal, food_quality, recorded_at, date')
+      .select('id, mom_id, food, meal, food_quality, calories, recorded_at, date')
       .eq('mom_id', momId)
       .eq('date', today)
       .order('recorded_at', { ascending: true })
@@ -200,6 +200,98 @@ export function useTodayDietCalories(momId: string | null): {
   return {
     totalCalories: Math.round(totalCalories),
     goal: CALORIE_GOAL_DEFAULT,
+    loading,
+  }
+}
+
+const BABY_ML_GOAL_DEFAULT = 750
+
+/** Parse bottle/amount text to mL (e.g. "120 ml", "4 oz" -> 120 or ~118). */
+function parseBottleToMl(bottle: string | null): number {
+  if (!bottle?.trim()) return 0
+  const s = bottle.trim().toLowerCase()
+  let total = 0
+  const mlMatch = s.match(/(\d+(?:\.\d+)?)\s*ml/g)
+  if (mlMatch) {
+    mlMatch.forEach((m) => {
+      const n = parseFloat(m.replace(/\s*ml/i, ''))
+      if (!Number.isNaN(n)) total += n
+    })
+  }
+  const ozMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:fl\.?\s*)?oz/g)
+  if (ozMatch) {
+    ozMatch.forEach((m) => {
+      const n = parseFloat(m.replace(/\s*(?:fl\.?\s*)?oz/i, ''))
+      if (!Number.isNaN(n)) total += n * 29.57
+    })
+  }
+  return Math.round(total)
+}
+
+/** Today's baby diet entries (all babies) for list display. */
+export function useTodayBabyDietEntries(babyIds: string[]): {
+  entries: BabyDiet[]
+  loading: boolean
+} {
+  const [entries, setEntries] = useState<BabyDiet[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const client = supabase
+    if (!client || babyIds.length === 0) {
+      setEntries([])
+      setLoading(false)
+      return
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    client
+      .from('baby_diet')
+      .select('id, baby_id, food, bottle, recorded_at, date')
+      .in('baby_id', babyIds)
+      .eq('date', today)
+      .order('recorded_at', { ascending: true })
+      .then(({ data }) => {
+        setEntries((data as BabyDiet[]) ?? [])
+        setLoading(false)
+      })
+  }, [babyIds.join(',')])
+
+  return { entries, loading }
+}
+
+/** Today's total mL for baby feedings (parsed from bottle field) and goal. */
+export function useTodayBabyDietMl(babyIds: string[]): {
+  totalMl: number
+  goalMl: number
+  loading: boolean
+} {
+  const [totalMl, setTotalMl] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const client = supabase
+    if (!client || babyIds.length === 0) {
+      setTotalMl(0)
+      setLoading(false)
+      return
+    }
+    const today = new Date().toISOString().slice(0, 10)
+    client
+      .from('baby_diet')
+      .select('bottle')
+      .in('baby_id', babyIds)
+      .eq('date', today)
+      .then(({ data }) => {
+        const rows = (data ?? []) as { bottle: string | null }[]
+        const total = rows.reduce((sum, r) => sum + parseBottleToMl(r.bottle), 0)
+        setTotalMl(total)
+        setLoading(false)
+      })
+  }, [babyIds.join(',')])
+
+  return {
+    totalMl,
+    goalMl: BABY_ML_GOAL_DEFAULT,
     loading,
   }
 }

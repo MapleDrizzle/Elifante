@@ -119,6 +119,70 @@
   color: var(--text);
 }
 
+.diet-log-calories {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.diet-log-bottle {
+  font-size: 0.85rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Today's logs section (Mom + Baby list below graphs) */
+.diet-today-logs {
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.diet-today-logs-title {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.diet-today-logs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .diet-today-logs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.diet-today-logs-col-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.diet-today-logs-loading,
+.diet-today-logs-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  padding: 0.5rem 0;
+}
+
+.diet-log--baby .diet-log-item {
+  grid-template-columns: auto 1fr auto;
+}
+
+.diet-log--baby .diet-log-item .diet-log-bottle {
+  grid-column: span 1;
+}
+
 .diet-log-quality--none {
   background: rgba(0, 0, 0, 0.08);
   color: var(--muted);
@@ -252,6 +316,80 @@
 .track-last-empty {
   color: var(--muted);
   font-style: italic;
+}
+
+/* Diet plan suggestions (Gemini) */
+.diet-plan-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.diet-plan-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.diet-plan-description {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.diet-plan-section .form-group {
+  margin-bottom: 1rem;
+}
+
+.diet-plan-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  resize: vertical;
+  min-height: 80px;
+}
+
+.diet-plan-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.diet-plan-btn {
+  margin-bottom: 0.75rem;
+}
+
+.diet-plan-error {
+  margin: 0.5rem 0 0;
+}
+
+.diet-plan-result {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.diet-plan-result-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.diet-plan-result-text {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text);
+  white-space: pre-wrap;
 }
 
 /* Add form pages */

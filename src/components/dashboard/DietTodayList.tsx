@@ -1,20 +1,6 @@
 import { useTodayDietEntries } from '../../hooks/useDashboardData'
 import type { MotherDiet } from '../../types/database'
 
-function getQualityLabel(quality: number | null): string {
-  if (quality == null) return '—'
-  if (quality <= 2) return 'Poor'
-  if (quality <= 4) return 'Good'
-  return 'Great'
-}
-
-function getQualityClass(quality: number | null): string {
-  if (quality == null) return 'diet-log-quality--none'
-  if (quality <= 2) return 'diet-log-quality--poor'
-  if (quality <= 4) return 'diet-log-quality--good'
-  return 'diet-log-quality--great'
-}
-
 function formatTime(recordedAt: string): string {
   const d = new Date(recordedAt)
   return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
@@ -67,12 +53,9 @@ export default function DietTodayList({ momId }: Props): JSX.Element {
             {entry.meal && (
               <span className="diet-log-meal">{mealLabel(entry.meal)}</span>
             )}
-            <span
-              className={`diet-log-quality ${getQualityClass(entry.food_quality)}`}
-              aria-label={`Quality: ${getQualityLabel(entry.food_quality)}`}
-            >
-              {getQualityLabel(entry.food_quality)}
-            </span>
+            {typeof entry.calories === 'number' && (
+              <span className="diet-log-calories" aria-label="Calories">{entry.calories} cal</span>
+            )}
           </li>
         ))}
       </ul>

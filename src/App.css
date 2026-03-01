@@ -259,6 +259,52 @@
   transform: scale(1.2);
 }
 
+/* Diet slide: Mom + Baby charts side by side with labels underneath */
+.slideshow-slide--diet-pair {
+  justify-content: center;
+  padding: 0.75rem 1rem;
+}
+
+.slideshow-diet-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+  width: 100%;
+  max-width: 520px;
+  align-items: start;
+}
+
+.slideshow-diet-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.slideshow-diet-cell .calorie-goal-chart-wrap {
+  height: 180px;
+}
+
+.slideshow-diet-cell .calorie-goal-center {
+  font-size: 0.9rem;
+}
+
+.slideshow-diet-cell .calorie-goal-current {
+  font-size: 1.35rem;
+}
+
+.slideshow-diet-cell .calorie-goal-target {
+  font-size: 1rem;
+}
+
+.slideshow-diet-label {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* Dashboard slide content */
 .dashboard-slide {
   min-height: 280px;
