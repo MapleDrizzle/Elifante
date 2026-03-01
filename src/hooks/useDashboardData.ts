@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Sleep, MotherDiet, Mood, Development } from '../types/database'
 import type { Meal } from '../types/database'
@@ -264,6 +264,203 @@ export type BabyDevelopmentInfo = {
   babyName: string
   birthDate: string
   milestones: string[]
+}
+
+/** kg to lbs */
+export function kgToLbs(kg: number): number {
+  return Math.round(kg * 2.20462 * 10) / 10
+}
+
+/** cm to inches */
+export function cmToInches(cm: number): number {
+  return Math.round((cm / 2.54) * 10) / 10
+}
+
+export type DevelopmentLog = {
+  id: string
+  weightKg: number | null
+  heightCm: number | null
+  milestone: string | null
+  recordedAt: string
+  ageMonths: number
+  ageDays: number
+}
+
+export type ChartDataPoint = {
+  ageLabel: string // "0 mo" or "2 mo 15 d"
+  ageMonths: number
+  weightLbs: number | null
+  heightIn: number | null
+}
+
+export function useBabyDevelopmentHistory(
+  babyId: string | null,
+  birthDate: string
+): {
+  logs: DevelopmentLog[]
+  weightChartData: ChartDataPoint[]
+  heightChartData: ChartDataPoint[]
+  loading: boolean
+  refetch: () => void
+} {
+  const [logs, setLogs] = useState<DevelopmentLog[]>([])
+  const [weightChartData, setWeightChartData] = useState<ChartDataPoint[]>([])
+  const [heightChartData, setHeightChartData] = useState<ChartDataPoint[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchDev = useCallback(async (): Promise<void> => {
+    const client = supabase
+    if (!client || !babyId) {
+      setLogs([])
+      setLoading(false)
+      return
+    }
+
+    const { data: rows } = await client
+      .from('development')
+      .select('id, weight_kg, height_cm, milestone, recorded_at')
+      .eq('baby_id', babyId)
+      .order('recorded_at', { ascending: true }) as { data: Development[] | null }
+
+    const birth = new Date(birthDate)
+    const list = (rows ?? []).map((r) => {
+      const rec = new Date(r.recorded_at)
+      const ageMs = rec.getTime() - birth.getTime()
+      const ageDays = Math.floor(ageMs / (1000 * 60 * 60 * 24))
+      const ageMonths = Math.floor(ageDays / 30.44)
+      return {
+        id: r.id,
+        weightKg: r.weight_kg,
+        heightCm: r.height_cm,
+        milestone: r.milestone,
+        recordedAt: r.recorded_at,
+        ageMonths,
+        ageDays,
+      }
+    })
+
+    const chartData: ChartDataPoint[] = list.map((log) => ({
+      ageLabel:
+        log.ageMonths >= 12
+          ? `${Math.floor(log.ageMonths / 12)} y ${log.ageMonths % 12} mo`
+          : log.ageDays % 30 >= 7
+            ? `${log.ageMonths} mo ${log.ageDays % 30} d`
+            : `${log.ageMonths} mo`,
+      ageMonths: log.ageMonths + log.ageDays / 30.44,
+      weightLbs: log.weightKg != null ? kgToLbs(log.weightKg) : null,
+      heightIn: log.heightCm != null ? cmToInches(log.heightCm) : null,
+    }))
+
+    setLogs(list)
+
+    setWeightChartData(chartData.filter((d) => d.weightLbs != null))
+    setHeightChartData(chartData.filter((d) => d.heightIn != null))
+    setLoading(false)
+  }, [babyId, birthDate])
+
+  useEffect(() => {
+    fetchDev()
+  }, [fetchDev])
+
+  return {
+    logs,
+    weightChartData,
+    heightChartData,
+    loading,
+    refetch: fetchDev,
+  }
+}
+
+export function useInsertDevelopment(babyId: string | null): {
+  insert: (args: {
+    weightKg?: number | null
+    heightCm?: number | null
+    milestone?: string | null
+  }) => Promise<void>
+  inserting: boolean
+  error: string | null
+} {
+  const [inserting, setInserting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const insert = useCallback(
+    async (args: {
+      weightKg?: number | null
+      heightCm?: number | null
+      milestone?: string | null
+    }) => {
+      if (!babyId || !supabase) return
+      setError(null)
+      setInserting(true)
+      try {
+        const { error: e } = await supabase.from('development').insert({
+          baby_id: babyId,
+          weight_kg: args.weightKg ?? null,
+          height_cm: args.heightCm ?? null,
+          milestone: args.milestone ?? null,
+        })
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to log')
+        throw err
+      } finally {
+        setInserting(false)
+      }
+    },
+    [babyId]
+  )
+
+  return { insert, inserting, error }
+}
+
+export function useUpdateDevelopment(): {
+  update: (
+    id: string,
+    args: {
+      weightKg?: number | null
+      heightCm?: number | null
+      milestone?: string | null
+    }
+  ) => Promise<void>
+  updating: boolean
+  error: string | null
+} {
+  const [updating, setUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const update = useCallback(
+    async (
+      id: string,
+      args: {
+        weightKg?: number | null
+        heightCm?: number | null
+        milestone?: string | null
+      }
+    ) => {
+      if (!supabase) return
+      setError(null)
+      setUpdating(true)
+      try {
+        const { error: e } = await supabase
+          .from('development')
+          .update({
+            weight_kg: args.weightKg,
+            height_cm: args.heightCm,
+            milestone: args.milestone ?? null,
+          })
+          .eq('id', id)
+        if (e) throw e
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update')
+        throw err
+      } finally {
+        setUpdating(false)
+      }
+    },
+    []
+  )
+
+  return { update, updating, error }
 }
 
 export function useBabyDevelopment(

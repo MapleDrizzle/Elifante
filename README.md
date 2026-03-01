@@ -57,3 +57,16 @@ Add `src/components/` and `src/pages/` as you build out features.
 ## Environment
 
 Copy `.env.example` to `.env` and fill in any API keys or config when you add a backend or services.
+
+### Tips feature (Baby Development)
+
+The **Tips** button in the Milestones section uses **Google Gemini** to generate personalized development steps based on the baby's age, weight, height, and milestones. To enable it:
+
+1. Create an API key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+2. Add to `.env`:
+   ```
+   VITE_GOOGLE_GEMINI_API_KEY=your-gemini-api-key
+   ```
+3. Restart the dev server
+
+Without the API key, Tips will show an error when you try to generate.
