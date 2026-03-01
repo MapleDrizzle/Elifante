@@ -2,11 +2,11 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 const SIDEBAR_ITEMS = [
-  { label: 'Home', path: '/' },
-  { label: 'Diet', path: '/diet' },
-  { label: 'Sleep', path: '/sleep' },
-  { label: 'Mental', path: '/mental' },
-  { label: 'Baby Development', path: '/baby-development' },
+  { label: 'Home', path: '/', icon: '/images/home_logo.png' },
+  { label: 'Diet', path: '/diet', icon: '/images/diet_logo.png' },
+  { label: 'Sleep', path: '/sleep', icon: '/images/sleep_logo.png' },
+  { label: 'Mental', path: '/mental', icon: '/images/mental_logo.png' },
+  { label: 'Baby Development', path: '/baby-development', icon: '/images/baby_logo.png' },
 ] as const
 
 export default function Layout(): JSX.Element {
@@ -23,7 +23,7 @@ export default function Layout(): JSX.Element {
       <aside className="sidebar">
         <h2 className="sidebar-title">Elifante</h2>
         <nav className="sidebar-nav">
-          {SIDEBAR_ITEMS.map(({ label, path }) => (
+          {SIDEBAR_ITEMS.map(({ label, path, icon }) => (
             <NavLink
               key={path}
               to={path}
@@ -31,7 +31,8 @@ export default function Layout(): JSX.Element {
                 `sidebar-item${isActive ? ' sidebar-item--active' : ''}`
               }
             >
-              {label}
+              <img src={icon} alt="" className="sidebar-item-icon" aria-hidden />
+              <span className="sidebar-item-label">{label}</span>
             </NavLink>
           ))}
         </nav>
@@ -40,6 +41,9 @@ export default function Layout(): JSX.Element {
         </button>
       </aside>
       <div className="app-content">
+        <a href="/" className="app-logo-float" aria-label="Elifante home">
+          <img src="/images/elifante_logo.png" alt="" aria-hidden />
+        </a>
         <Outlet />
       </div>
     </div>
