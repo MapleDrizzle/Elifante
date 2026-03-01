@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import ThemeToggle from './ThemeToggle'
 
 const SIDEBAR_ITEMS = [
   { label: 'Home', path: '/', icon: '/images/home_logo.png' },
@@ -23,6 +24,7 @@ export default function Layout(): JSX.Element {
       <aside className="sidebar">
         <h2 className="sidebar-title">Elifante</h2>
         <nav className="sidebar-nav">
+          <ThemeToggle variant="sidebar" />
           {SIDEBAR_ITEMS.map(({ label, path, icon }) => (
             <NavLink
               key={path}

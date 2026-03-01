@@ -2,6 +2,7 @@
   --bg: #faf9f7;
   --text: #1a1a1a;
   --accent: #c47b7b;
+  --accent-rgb: 196, 123, 123;
   --baby-accent: #e8b4b4;
   --muted: #6b6b6b;
   --card: #ffffff;
@@ -12,6 +13,22 @@
   --diet-poor: #8b5252;
   --diet-good: #c47b7b;
   --diet-great: #e8b8b8;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1a1b;
+  --text: #f0f0f0;
+  --accent: #e8a0a0;
+  --accent-rgb: 232, 160, 160;
+  --baby-accent: #c9a0a0;
+  --muted: #9ca3af;
+  --card: #252526;
+  --radius: 12px;
+  --shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --border: rgba(255, 255, 255, 0.08);
+  --diet-poor: #a86a6a;
+  --diet-good: #e8a0a0;
+  --diet-great: #e8c0c0;
 }
 
 * {

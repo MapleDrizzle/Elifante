@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import ThemeToggle from '../components/ThemeToggle'
 import './Login.css'
 
 export default function Login(): JSX.Element {
@@ -34,6 +35,7 @@ export default function Login(): JSX.Element {
 
   return (
     <div className="login-page">
+      <ThemeToggle className="login-theme-toggle" />
       <div className="login-card">
         <div className="login-brand">
           <div className="login-logo-wrap">
