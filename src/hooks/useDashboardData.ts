@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { getLocalDateFromIso, getTodayLocal } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
 import type { Sleep, MotherDiet, BabyDiet, Mood, Development, ForumPost } from '../types/database'
 
@@ -106,17 +107,18 @@ export function useTodayDiet(momId: string | null): {
       return
     }
 
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getTodayLocal()
 
     const fetchDiet = async (): Promise<void> => {
       const { data: rows } = await client
         .from('mother_diet')
-        .select('id, food, food_quality')
+        .select('id, food, food_quality, recorded_at')
         .eq('mom_id', momId)
         .eq('date', today)
-        .order('recorded_at', { ascending: true }) as { data: (Pick<MotherDiet, 'id' | 'food' | 'food_quality'>)[] | null }
+        .order('recorded_at', { ascending: true }) as { data: (Pick<MotherDiet, 'id' | 'food' | 'food_quality'> & { recorded_at: string })[] | null }
 
-      const segments: DietSegment[] = (rows ?? []).map((r) => ({
+      const filtered = (rows ?? []).filter((r) => getLocalDateFromIso(r.recorded_at) === today)
+      const segments: DietSegment[] = filtered.map((r) => ({
         id: r.id,
         name: r.food?.trim() || 'Meal',
         value: 1,
@@ -146,15 +148,18 @@ export function useTodayDietEntries(momId: string | null): {
       setLoading(false)
       return
     }
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getTodayLocal()
     client
       .from('mother_diet')
       .select('id, mom_id, food, meal, food_quality, calories, recorded_at, date')
       .eq('mom_id', momId)
       .eq('date', today)
-      .order('recorded_at', { ascending: true })
+      .order('recorded_at', { ascending: false })
       .then(({ data }) => {
-        setEntries((data as MotherDiet[]) ?? [])
+        const today = getTodayLocal()
+        const list = (data as MotherDiet[]) ?? []
+        const filtered = list.filter((e) => getLocalDateFromIso(e.recorded_at) === today)
+        setEntries(filtered)
         setLoading(false)
       })
   }, [momId])
@@ -180,16 +185,17 @@ export function useTodayDietCalories(momId: string | null): {
       setLoading(false)
       return
     }
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getTodayLocal()
     client
       .from('mother_diet')
-      .select('calories')
+      .select('calories, recorded_at')
       .eq('mom_id', momId)
       .eq('date', today)
       .then(({ data }) => {
-        const total = (data ?? []).reduce(
-          (sum: number, row: { calories?: number | null }) =>
-            sum + (typeof row.calories === 'number' ? row.calories : 0),
+        const rows = (data ?? []) as { calories?: number | null; recorded_at?: string }[]
+        const filtered = rows.filter((r) => r.recorded_at && getLocalDateFromIso(r.recorded_at) === today)
+        const total = filtered.reduce(
+          (sum, row) => sum + (typeof row.calories === 'number' ? row.calories : 0),
           0
         )
         setTotalCalories(total)
@@ -243,15 +249,18 @@ export function useTodayBabyDietEntries(babyIds: string[]): {
       setLoading(false)
       return
     }
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getTodayLocal()
     client
       .from('baby_diet')
       .select('id, baby_id, food, bottle, recorded_at, date')
       .in('baby_id', babyIds)
       .eq('date', today)
-      .order('recorded_at', { ascending: true })
+      .order('recorded_at', { ascending: false })
       .then(({ data }) => {
-        setEntries((data as BabyDiet[]) ?? [])
+        const today = getTodayLocal()
+        const list = (data as BabyDiet[]) ?? []
+        const filtered = list.filter((e) => getLocalDateFromIso(e.recorded_at) === today)
+        setEntries(filtered)
         setLoading(false)
       })
   }, [babyIds.join(',')])
@@ -275,15 +284,16 @@ export function useTodayBabyDietMl(babyIds: string[]): {
       setLoading(false)
       return
     }
-    const today = new Date().toISOString().slice(0, 10)
+    const today = getTodayLocal()
     client
       .from('baby_diet')
-      .select('bottle')
+      .select('bottle, recorded_at')
       .in('baby_id', babyIds)
       .eq('date', today)
       .then(({ data }) => {
-        const rows = (data ?? []) as { bottle: string | null }[]
-        const total = rows.reduce((sum, r) => sum + parseBottleToMl(r.bottle), 0)
+        const rows = (data ?? []) as { bottle: string | null; recorded_at?: string }[]
+        const filtered = rows.filter((r) => r.recorded_at && getLocalDateFromIso(r.recorded_at) === today)
+        const total = filtered.reduce((sum, r) => sum + parseBottleToMl(r.bottle), 0)
         setTotalMl(total)
         setLoading(false)
       })

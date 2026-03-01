@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { getTodayLocal } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
 import '../styles/TrackPage.css'
 
@@ -32,12 +33,11 @@ export default function AddBabyMeal(): JSX.Element {
       return
     }
     setSubmitting(true)
-    const today = new Date().toISOString().slice(0, 10)
     const { error: insertErr } = await client.from('baby_diet').insert({
       baby_id: babyId,
       food: food.trim() || null,
       bottle: bottle.trim() || null,
-      date: today,
+      date: getTodayLocal(),
     })
     if (insertErr) {
       setError(insertErr.message)

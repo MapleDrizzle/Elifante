@@ -70,7 +70,7 @@ export default function Home(): JSX.Element {
                 <div className="slideshow-diet-pair">
                   <div className="slideshow-diet-cell">
                     <CalorieGoalChart momId={mom?.id ?? null} variant="slideshow" />
-                    <p className="slideshow-diet-label">Mom – daily calorie goal</p>
+                    <p className="slideshow-diet-label">Mom – today&apos;s calorie goal</p>
                   </div>
                   <div className="slideshow-diet-cell">
                     {babyIds.length === 0 ? (

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { getTodayLocal } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
 import { estimateCalories } from '../lib/gemini'
 import '../styles/TrackPage.css'
@@ -47,7 +48,7 @@ export default function AddMomMeal(): JSX.Element {
         meal: null,
         food_quality: null,
         calories,
-        date: new Date().toISOString().slice(0, 10),
+        date: getTodayLocal(),
       })
       if (insertErr) {
         setError(insertErr.message)
