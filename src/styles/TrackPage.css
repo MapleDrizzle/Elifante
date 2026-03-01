@@ -1,0 +1,213 @@
+/* Shared layout for Diet and Sleep tracking pages */
+.track-page .app-main {
+  max-width: 100%;
+}
+
+.track-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .track-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.track-chart-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  min-height: 200px;
+}
+
+.track-chart-card--sleep {
+  min-height: 400px;
+}
+
+.track-chart-card--diet {
+  min-height: 340px;
+}
+
+.track-chart-title {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.track-chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.track-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .track-buttons {
+    grid-template-columns: 1fr;
+  }
+}
+
+.track-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+}
+
+.track-btn:hover {
+  opacity: 0.92;
+}
+
+.track-btn:active {
+  transform: scale(0.98);
+}
+
+.track-last-logged {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem 1.25rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .track-last-logged {
+    grid-template-columns: 1fr;
+  }
+}
+
+.track-last-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+.track-last-value {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.track-last-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Add form pages */
+.form-page .app-main {
+  max-width: 480px;
+}
+
+.form-page h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions button,
+.form-actions a {
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.form-submit {
+  color: white;
+  background: var(--accent);
+  border: none;
+}
+
+.form-submit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.form-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-cancel {
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.form-cancel:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text);
+}
+
+.form-error {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #b91c1c;
+}

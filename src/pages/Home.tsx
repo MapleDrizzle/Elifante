@@ -62,7 +62,13 @@ export default function Home(): JSX.Element {
                 <SleepChart data={sleepData} loading={sleepLoading} />
               </div>
               <div className="slideshow-slide">
-                <DietChart data={dietData} loading={dietLoading} />
+                <DietChart
+                  data={dietData}
+                  loading={dietLoading}
+                  height={300}
+                  innerRadius={55}
+                  outerRadius={95}
+                />
               </div>
               <div className="slideshow-slide">
                 <MoodSlide mood={mood} loading={moodLoading} />

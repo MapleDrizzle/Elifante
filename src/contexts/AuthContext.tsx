@@ -83,33 +83,16 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       return
     }
 
-    supabase.auth
-      .getSession()
-      .then(({ data: { session: s } }) => {
-        setSession(s)
-        setUser(s?.user ?? null)
-        if (s?.user) {
-          loadProfileData(s.user.id, setProfile, setMom, setBabies).finally(() =>
-            setLoading(false)
-          )
-        } else {
-          setLoading(false)
-        }
-      })
-      .catch((err) => {
-        console.error('Auth getSession error:', err)
-        setUser(null)
-        setSession(null)
-        setLoading(false)
-      })
-
+    // Use only onAuthStateChange to avoid racing getSession() with the listener
+    // (both touch storage and can cause "Lock broken" AbortError)
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, s) => {
+    } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s)
       setUser(s?.user ?? null)
+      setLoading(false)
       if (s?.user) {
-        await loadProfileData(s.user.id, setProfile, setMom, setBabies)
+        loadProfileData(s.user.id, setProfile, setMom, setBabies)
       } else {
         setProfile(null)
         setMom(null)

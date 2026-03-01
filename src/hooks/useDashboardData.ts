@@ -85,6 +85,8 @@ export function useWeeklySleep(momId: string | null, babyIds: string[]): {
 }
 
 const MEAL_ORDER: Meal[] = ['breakfast', 'lunch', 'dinner', 'snack', 'other']
+/** Only these are shown in the diet chart (no snack/other). */
+const MEAL_ORDER_DISPLAY: Meal[] = ['breakfast', 'lunch', 'dinner']
 
 export type DietSegment = {
   name: string
@@ -102,7 +104,13 @@ export function useTodayDiet(momId: string | null): {
   useEffect(() => {
     const client = supabase
     if (!client || !momId) {
-      setData(MEAL_ORDER.map((m) => ({ name: m, value: 0, filled: false })))
+      setData(
+        MEAL_ORDER_DISPLAY.map((m) => ({
+          name: m.charAt(0).toUpperCase() + m.slice(1),
+          value: 0,
+          filled: false,
+        }))
+      )
       setLoading(false)
       return
     }
@@ -128,7 +136,7 @@ export function useTodayDiet(momId: string | null): {
 
       const total = Object.values(counts).reduce((a, b) => a + b, 0)
       setData(
-        MEAL_ORDER.map((meal) => ({
+        MEAL_ORDER_DISPLAY.map((meal) => ({
           name: meal.charAt(0).toUpperCase() + meal.slice(1),
           value: total > 0 ? counts[meal] : 0,
           filled: counts[meal] > 0,
@@ -139,6 +147,64 @@ export function useTodayDiet(momId: string | null): {
 
     fetchDiet()
   }, [momId])
+
+  return { data, loading }
+}
+
+export type BabyDayDiet = {
+  day: string
+  count: number
+}
+
+export function useBabyDietWeekly(babyIds: string[]): {
+  data: BabyDayDiet[]
+  loading: boolean
+} {
+  const [data, setData] = useState<BabyDayDiet[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const client = supabase
+    if (!client || babyIds.length === 0) {
+      setData([])
+      setLoading(false)
+      return
+    }
+
+    const weekAgo = new Date()
+    weekAgo.setDate(weekAgo.getDate() - 7)
+    const from = weekAgo.toISOString().slice(0, 10)
+
+    const fetchDiet = async (): Promise<void> => {
+      const { data: rows } = await client
+        .from('baby_diet')
+        .select('date')
+        .in('baby_id', babyIds)
+        .gte('date', from)
+
+      const byDay: Record<string, number> = {}
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        byDay[d.toISOString().slice(0, 10)] = 0
+      }
+      ;(rows ?? []).forEach((r: { date: string }) => {
+        const key = r.date?.slice(0, 10)
+        if (key && byDay[key] !== undefined) byDay[key] += 1
+      })
+
+      const sorted = Object.entries(byDay)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, count]) => ({
+          day: DAY_LABELS[new Date(date).getDay()],
+          count,
+        }))
+      setData(sorted)
+      setLoading(false)
+    }
+
+    fetchDiet()
+  }, [babyIds.join(',')])
 
   return { data, loading }
 }

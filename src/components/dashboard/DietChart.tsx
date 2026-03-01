@@ -7,9 +7,20 @@ const EMPTY_COLOR = 'rgba(0,0,0,0.08)'
 type Props = {
   data: DietSegment[]
   loading: boolean
+  /** Chart height. Larger = less cramped on track page. */
+  height?: number
+  /** Pie inner/outer radius. Slightly larger = more breathing room. */
+  innerRadius?: number
+  outerRadius?: number
 }
 
-export default function DietChart({ data, loading }: Props): JSX.Element {
+export default function DietChart({
+  data,
+  loading,
+  height = 260,
+  innerRadius = 60,
+  outerRadius = 100,
+}: Props): JSX.Element {
   if (loading) {
     return (
       <div className="dashboard-slide dashboard-slide--loading">
@@ -37,7 +48,7 @@ export default function DietChart({ data, loading }: Props): JSX.Element {
     <div className="dashboard-slide dashboard-slide--chart">
       <h3 className="dashboard-slide-title">Today&apos;s meals</h3>
       <p className="dashboard-slide-subtitle">Logged by meal type</p>
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie
             data={chartData}
@@ -45,8 +56,8 @@ export default function DietChart({ data, loading }: Props): JSX.Element {
             nameKey="name"
             cx="50%"
             cy="50%"
-            innerRadius={60}
-            outerRadius={100}
+            innerRadius={innerRadius}
+            outerRadius={outerRadius}
             paddingAngle={2}
             label={({ name, filled }) => (filled ? name : '')}
           >

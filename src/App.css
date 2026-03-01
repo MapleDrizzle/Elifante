@@ -225,6 +225,12 @@
   justify-content: center;
 }
 
+.dashboard-slide--chart {
+  min-height: 340px;
+  justify-content: flex-start;
+  padding-bottom: 1rem;
+}
+
 .dashboard-slide-title {
   margin: 0 0 0.25rem;
   font-size: 1.1rem;
@@ -238,15 +244,15 @@
   color: var(--muted);
 }
 
+.dashboard-slide--chart .dashboard-slide-title {
+  text-align: center;
+}
+
 .dashboard-slide--loading,
 .dashboard-slide--empty {
   color: var(--muted);
   text-align: center;
   padding: 2rem;
-}
-
-.dashboard-slide--chart .dashboard-slide-title {
-  text-align: center;
 }
 
 .dashboard-slide--mood .mood-display {
