@@ -390,21 +390,20 @@
 
 /* Hero: baby name + Add baby */
 .baby-dev-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .baby-dev-hero-text {
-  flex: 1;
   min-width: 0;
-  flex: 1;
-  min-width: 0;
+}
+
+.baby-dev-hero-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .baby-dev-name {

@@ -304,31 +304,33 @@ export default function BabyDevelopment(): JSX.Element {
         {/* Hero: baby name + selector + Add baby */}
         <section className="baby-dev-hero">
           <div className="baby-dev-hero-text">
-            {babies.length > 1 ? (
-              <select
-                className="baby-dev-baby-select"
-                value={selectedBabyIndex}
-                onChange={(e) => setSelectedBabyIndex(Number(e.target.value))}
-                aria-label="Select baby"
+            <div className="baby-dev-hero-name-row">
+              {babies.length > 1 ? (
+                <select
+                  className="baby-dev-baby-select"
+                  value={selectedBabyIndex}
+                  onChange={(e) => setSelectedBabyIndex(Number(e.target.value))}
+                  aria-label="Select baby"
+                >
+                  {babies.map((b, i) => (
+                    <option key={b.id} value={i}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <h1 className="baby-dev-name">{firstBaby.name}</h1>
+              )}
+              <button
+                type="button"
+                className="baby-dev-add-baby-btn"
+                onClick={() => setShowAddBabyModal(true)}
               >
-                {babies.map((b, i) => (
-                  <option key={b.id} value={i}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <h1 className="baby-dev-name">{firstBaby.name}</h1>
-            )}
+                Add baby
+              </button>
+            </div>
             <p className="baby-dev-subtitle">Track development, weight, height & milestones</p>
           </div>
-          <button
-            type="button"
-            className="baby-dev-add-baby-btn"
-            onClick={() => setShowAddBabyModal(true)}
-          >
-            Add baby
-          </button>
         </section>
 
         {/* Stats row: Age | Weight | Height + Log baby info */}
