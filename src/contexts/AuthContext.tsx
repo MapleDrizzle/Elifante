@@ -24,6 +24,7 @@ type AuthContextValue = {
   signUp: (email: string, password: string, username?: string) => Promise<void>
   signOut: () => Promise<void>
   clearError: () => void
+  addBaby: (name: string, birthDate: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -149,6 +150,48 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
 
   const clearError = useCallback(() => setError(null), [])
 
+  const addBaby = useCallback(
+    async (name: string, birthDate: string) => {
+      setError(null)
+      if (!supabase || !user) {
+        setError('You must be signed in to add a baby.')
+        throw new Error('Not signed in')
+      }
+      const client = supabase
+
+      let momId = mom?.id
+      if (!momId) {
+        const { data: newMom, error: momErr } = await client
+          .from('moms')
+          .insert({ profile_id: user.id })
+          .select('id')
+          .single()
+        if (momErr) {
+          setError(momErr.message)
+          throw momErr
+        }
+        momId = newMom?.id
+      }
+      if (!momId) {
+        setError('Could not create or find mom record.')
+        throw new Error('No mom id')
+      }
+
+      const { error: babyErr } = await client.from('babies').insert({
+        mom_id: momId,
+        name: name.trim(),
+        birth_date: birthDate,
+      })
+      if (babyErr) {
+        setError(babyErr.message)
+        throw babyErr
+      }
+
+      await loadProfileData(user.id, setProfile, setMom, setBabies)
+    },
+    [user, mom?.id]
+  )
+
   const displayName = profile?.username?.trim() || 'User'
 
   const value = useMemo<AuthContextValue>(
@@ -165,6 +208,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       signUp,
       signOut,
       clearError,
+      addBaby,
     }),
     [
       user,
@@ -179,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       signUp,
       signOut,
       clearError,
+      addBaby,
     ]
   )
 
