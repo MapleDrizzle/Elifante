@@ -2,27 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
-import type { Meal } from '../types/database'
+import { estimateCalories } from '../lib/gemini'
 import '../styles/TrackPage.css'
-
-const MEAL_OPTIONS: { value: Meal; label: string }[] = [
-  { value: 'breakfast', label: 'Breakfast' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'dinner', label: 'Dinner' },
-]
-
-const QUALITY_OPTIONS: { value: 1 | 3 | 5; label: string }[] = [
-  { value: 1, label: 'Poor' },
-  { value: 3, label: 'Good' },
-  { value: 5, label: 'Great' },
-]
 
 export default function AddMomMeal(): JSX.Element {
   const navigate = useNavigate()
   const { user, mom } = useAuth()
-  const [food, setFood] = useState('')
-  const [meal, setMeal] = useState<Meal>('breakfast')
-  const [quality, setQuality] = useState<1 | 3 | 5>(3)
+  const [whatAte, setWhatAte] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -47,20 +33,32 @@ export default function AddMomMeal(): JSX.Element {
       }
       momId = newMom.id
     }
-    setSubmitting(true)
-    const { error: insertErr } = await client.from('mother_diet').insert({
-      mom_id: momId,
-      food: food.trim(),
-      meal,
-      food_quality: quality,
-      date: new Date().toISOString().slice(0, 10),
-    })
-    if (insertErr) {
-      setError(insertErr.message)
-      setSubmitting(false)
+    const description = whatAte.trim()
+    if (!description) {
+      setError('Please describe what you ate.')
       return
     }
-    navigate('/diet', { replace: true })
+    setSubmitting(true)
+    try {
+      const calories = await estimateCalories(description)
+      const { error: insertErr } = await client.from('mother_diet').insert({
+        mom_id: momId,
+        food: description,
+        meal: null,
+        food_quality: null,
+        calories,
+        date: new Date().toISOString().slice(0, 10),
+      })
+      if (insertErr) {
+        setError(insertErr.message)
+        setSubmitting(false)
+        return
+      }
+      navigate('/diet', { replace: true })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not estimate calories.')
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -70,51 +68,27 @@ export default function AddMomMeal(): JSX.Element {
         <p>Add a meal for you</p>
       </header>
       <main className="app-main form-page">
-        <h2>Log mom&apos;s meal</h2>
+        <h2>What did you eat?</h2>
+        <p className="form-hint">Describe your meal and we&apos;ll estimate the calories for your daily goal.</p>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="mom-food">Food</label>
+            <label htmlFor="mom-what-ate" className="sr-only">
+              What did you eat?
+            </label>
             <input
-              id="mom-food"
+              id="mom-what-ate"
               type="text"
-              placeholder="e.g. Oatmeal, eggs"
-              value={food}
-              onChange={(e) => setFood(e.target.value)}
+              placeholder="e.g. Two eggs, toast with butter, orange juice"
+              value={whatAte}
+              onChange={(e) => setWhatAte(e.target.value)}
               required
+              autoFocus
             />
-          </div>
-          <div className="form-group">
-            <label htmlFor="mom-meal">Meal</label>
-            <select
-              id="mom-meal"
-              value={meal}
-              onChange={(e) => setMeal(e.target.value as Meal)}
-            >
-              {MEAL_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="mom-quality">Quality</label>
-            <select
-              id="mom-quality"
-              value={quality}
-              onChange={(e) => setQuality(Number(e.target.value) as 1 | 3 | 5)}
-            >
-              {QUALITY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
           </div>
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             <button type="submit" className="form-submit" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Save meal'}
+              {submitting ? 'Estimating & saving…' : 'Add to daily goal'}
             </button>
             <Link to="/diet" className="form-cancel">
               Cancel

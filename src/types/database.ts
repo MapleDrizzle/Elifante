@@ -60,6 +60,7 @@ export interface MotherDiet {
   food: string
   meal: Meal | null
   food_quality: FoodQuality | null
+  calories: number | null
   recorded_at: string
   date: string // ISO date
 }
