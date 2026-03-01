@@ -4,7 +4,6 @@ import {
   useWeeklySleep,
   useTodayDietCalories,
   useTodayBabyDietMl,
-  useLatestMood,
   useBabyDevelopment,
 } from '../hooks/useDashboardData'
 import SleepChart from '../components/dashboard/SleepChart'
@@ -41,7 +40,6 @@ export default function Home(): JSX.Element {
   )
   useTodayDietCalories(mom?.id ?? null)
   useTodayBabyDietMl(babyIds)
-  const { mood, loading: moodLoading } = useLatestMood(mom?.id ?? null)
   const { data: devData, loading: devLoading } = useBabyDevelopment(
     firstBaby?.id ?? null,
     firstBaby?.name ?? '',
@@ -87,7 +85,7 @@ export default function Home(): JSX.Element {
                 </div>
               </div>
               <div className="slideshow-slide">
-                <MoodSlide mood={mood} loading={moodLoading} />
+                <MoodSlide momId={mom?.id ?? null} />
               </div>
               <div className="slideshow-slide">
                 <DevelopmentSlide data={devData} loading={devLoading} />

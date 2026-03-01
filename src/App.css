@@ -340,6 +340,40 @@
   text-align: center;
 }
 
+.mood-slide-header {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.mood-slide-title {
+  margin: 0 0 0.2rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mood-slide-tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mood-slide-subtext {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.dashboard-slide--mood-chart .dashboard-slide-subtitle {
+  text-align: center;
+}
+
+.mood-chart-slide-wrap {
+  width: 100%;
+  min-height: 260px;
+}
+
 .dashboard-slide--loading,
 .dashboard-slide--empty {
   color: var(--muted);

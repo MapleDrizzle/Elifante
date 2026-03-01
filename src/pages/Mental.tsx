@@ -58,6 +58,34 @@ const FORUM_TOPIC_SUGGESTIONS = [
 const SUPPORT_LINK = 'https://www.postpartum.net/'
 const SUPPORT_LABEL = 'Postpartum Support International'
 
+async function fetchMoodSuggestion(
+  mood: number,
+  moodLabel: string,
+  context: string,
+  whatOnMind: string
+): Promise<string | null> {
+  const apiUrl = import.meta.env.VITE_MOOD_SUGGESTION_URL as string | undefined
+  const url = (apiUrl?.trim() || '') ? apiUrl : '/api/mood-suggestion'
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mood,
+        moodLabel,
+        context: context || '',
+        whatOnMind: whatOnMind || '',
+      }),
+    })
+    if (!res.ok) return null
+    const data = await res.json()
+    const suggestion = data?.suggestion
+    return typeof suggestion === 'string' ? suggestion.trim() : null
+  } catch {
+    return null
+  }
+}
+
 function formatMoodTime(iso: string): string {
   const d = new Date(iso)
   return d.toLocaleString(undefined, {
@@ -74,12 +102,19 @@ function getMoodDisplay(rating: number): { imageSrc: string; label: string } {
   return opt ?? fallback
 }
 
+function isLoggedToday(recordedAtIso: string | null): boolean {
+  if (!recordedAtIso) return false
+  const d = new Date(recordedAtIso)
+  const t = new Date()
+  return d.getFullYear() === t.getFullYear() && d.getMonth() === t.getMonth() && d.getDate() === t.getDate()
+}
+
 export default function Mental(): JSX.Element {
   const { mom, profile } = useAuth()
   const momId = mom?.id ?? null
   const profileId = profile?.id ?? null
 
-  const { mood, emotion, moodContext, loading: moodLoading } = useLatestMood(momId)
+  const { mood, emotion, moodContext, recordedAt, loading: moodLoading } = useLatestMood(momId)
   const { moods, loading: historyLoading, refetch: refetchMoods } = useMoodHistory(momId)
   const { insert: insertMood, inserting: moodInserting, error: moodError } = useInsertMood(momId)
   const { posts, loading: forumLoading, refetch: refetchForum } = useForumPosts()
@@ -96,31 +131,53 @@ export default function Mental(): JSX.Element {
   const [moodContextValue, setMoodContextValue] = useState('')
   const [forumTopic, setForumTopic] = useState('')
   const [forumBody, setForumBody] = useState('')
-  const [showHeardMessage, setShowHeardMessage] = useState(false)
+  const [showHeardMessage, setShowHeardMessage] = useState<'default' | 'low' | false>(false)
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null)
+  const [aiSuggestionLoading, setAiSuggestionLoading] = useState(false)
 
   const handleMoodSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const savedEmotion = emotionText.trim()
+    if (!savedEmotion) return
     try {
       await insertMood(
         moodRating,
-        emotionText.trim() || null,
+        savedEmotion,
         moodContextValue.trim() || null
       )
       setShowMoodForm(false)
       setEmotionText('')
       setMoodContextValue('')
-      setShowHeardMessage(true)
+      setShowHeardMessage(moodRating <= 2 ? 'low' : 'default')
+      setAiSuggestion(null)
+      setAiSuggestionLoading(true)
       refetchMoods()
+      fetchMoodSuggestion(
+        moodRating,
+        getMoodDisplay(moodRating).label,
+        moodContextValue.trim(),
+        savedEmotion
+      ).then((s) => setAiSuggestion(s)).finally(() => setAiSuggestionLoading(false))
     } catch {
+      setAiSuggestionLoading(false)
       // error handled in hook
     }
   }
 
   useEffect(() => {
-    if (!showHeardMessage) return
-    const t = setTimeout(() => setShowHeardMessage(false), 3500)
+    if (showHeardMessage === false) return
+    const t = setTimeout(() => setShowHeardMessage(false), 5000)
     return () => clearTimeout(t)
   }, [showHeardMessage])
+
+  useEffect(() => {
+    if (!showMoodForm) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMoodForm(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showMoodForm])
 
   const handleForumSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -172,6 +229,7 @@ export default function Mental(): JSX.Element {
   }
 
   const currentMoodDisplay = mood != null ? getMoodDisplay(mood) : null
+  const hasLoggedToday = isLoggedToday(recordedAt)
 
   const weekStats = useMemo(() => {
     const now = new Date()
@@ -215,18 +273,46 @@ export default function Mental(): JSX.Element {
         <div className="mental-layout">
           {/* Left: Mood section */}
           <section className="mental-mood-section">
-            {showHeardMessage && (
+            {showHeardMessage === 'default' && (
               <p className="mental-heard-message" role="status">
                 Thanks for sharing. You&apos;re heard.
               </p>
             )}
+            {showHeardMessage === 'low' && (
+              <div className="mental-heard-message mental-heard-message-low" role="status">
+                <p>Thanks for sharing. It&apos;s okay to have hard days.</p>
+                <p>
+                  If you want to talk,{' '}
+                  <a
+                    href={SUPPORT_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mental-heard-support-link"
+                  >
+                    {SUPPORT_LABEL}
+                  </a>{' '}
+                  is here for you.
+                </p>
+              </div>
+            )}
+            {aiSuggestionLoading && (
+              <p className="mental-ai-loading" aria-live="polite">
+                Thinking of something for you…
+              </p>
+            )}
+            {aiSuggestion && !aiSuggestionLoading && (
+              <div className="mental-ai-suggestion mental-card" role="status">
+                <h3 className="mental-card-title">A little something for you</h3>
+                <p className="mental-ai-suggestion-text">{aiSuggestion}</p>
+              </div>
+            )}
 
-            {/* Current mood card – today’s check-in */}
+            {/* Current mood card – today’s check-in (How are you doing) */}
             <div className="mental-current-mood mental-card">
               <h3 className="mental-card-title">How are you today?</h3>
               {moodLoading ? (
                 <p className="mental-loading">Loading…</p>
-              ) : currentMoodDisplay ? (
+              ) : hasLoggedToday && currentMoodDisplay ? (
                 <div className="mental-current-display">
                   <img
                     src={currentMoodDisplay.imageSrc}
@@ -247,20 +333,30 @@ export default function Mental(): JSX.Element {
                   <button
                     type="button"
                     className="mental-update-btn"
-                    onClick={() => setShowMoodForm(true)}
+                    onClick={() => { setShowMoodForm(true); setAiSuggestion(null); }}
                   >
                     Update today&apos;s mood
                   </button>
                 </div>
               ) : (
                 <div className="mental-current-empty">
-                  <p>Log how you&apos;re doing today.</p>
+                  <p>
+                    {currentMoodDisplay
+                      ? "You haven't logged your mood today."
+                      : "Log how you're doing today."}
+                  </p>
+                  {currentMoodDisplay && recordedAt && (
+                    <p className="mental-last-checkin">
+                      Last check-in: {formatMoodTime(recordedAt)} — {currentMoodDisplay.label}
+                      {moodContext && ` · ${moodContext}`}
+                    </p>
+                  )}
                   <button
                     type="button"
-                    className="mental-update-btn"
-                    onClick={() => setShowMoodForm(true)}
+                    className="mental-update-btn mental-log-today-btn"
+                    onClick={() => { setShowMoodForm(true); setAiSuggestion(null); }}
                   >
-                    Log your mood
+                    Log your mood for today
                   </button>
                 </div>
               )}
@@ -295,10 +391,18 @@ export default function Mental(): JSX.Element {
               )}
             </div>
 
-            {/* Update mood form */}
+            {/* Update mood form – modal popup */}
             {showMoodForm && (
-              <div className="mental-mood-form mental-card">
-                <h3 className="mental-card-title">How are you doing today?</h3>
+              <div
+                className="mental-mood-modal-backdrop"
+                onClick={() => setShowMoodForm(false)}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="mental-modal-title"
+              >
+                <div className="mental-mood-modal-wrap" onClick={(e) => e.stopPropagation()}>
+                  <div className="mental-mood-form mental-card">
+                    <h3 id="mental-modal-title" className="mental-card-title">How are you doing today?</h3>
                 <p className="mental-form-subtext">Your check-in for today.</p>
                 <form onSubmit={handleMoodSubmit}>
                   <p className="mental-form-label">How are you feeling? (1–5)</p>
@@ -337,13 +441,15 @@ export default function Mental(): JSX.Element {
                     </select>
                   </label>
                   <label className="mental-form-label">
-                    What&apos;s on your mind? (optional)
+                    What&apos;s on your mind?
                     <input
                       type="text"
                       className="mental-emotion-input"
-                      placeholder="e.g. grateful, anxious, peaceful, one word"
+                      placeholder="e.g. grateful, anxious, peaceful — a word or short phrase"
                       value={emotionText}
                       onChange={(e) => setEmotionText(e.target.value)}
+                      required
+                      minLength={1}
                     />
                   </label>
                   {moodError && (
@@ -368,6 +474,8 @@ export default function Mental(): JSX.Element {
                     </button>
                   </div>
                 </form>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -534,11 +642,11 @@ export default function Mental(): JSX.Element {
             </div>
             </div>
 
-            {/* Support block */}
-            <div className="mental-support-block mental-card">
-              <h3 className="mental-card-title">You&apos;re not alone</h3>
-              <p className="mental-support-text">
-                If you&apos;re struggling, talking to someone can help. Consider reaching out to a friend, partner, or a healthcare provider.
+            {/* When you need support – always visible */}
+            <div className="mental-support-card mental-card">
+              <h3 className="mental-card-title">When you need support</h3>
+              <p className="mental-support-card-text">
+                You&apos;re not alone. Reach out when you need to.
               </p>
               <a
                 href={SUPPORT_LINK}
