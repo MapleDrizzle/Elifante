@@ -36,7 +36,13 @@ export default function Login(): JSX.Element {
     <div className="login-page">
       <div className="login-card">
         <div className="login-brand">
-          <h1 className="login-title">Elifante</h1>
+          <div className="login-logo-wrap">
+            <img
+              src="/images/elifante_logo.png"
+              alt="Elifante"
+              className="login-logo"
+            />
+          </div>
           <p className="login-subtitle">Your postpartum companion</p>
         </div>
 

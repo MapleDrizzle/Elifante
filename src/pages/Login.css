@@ -9,8 +9,8 @@
 
 .login-card {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
+  max-width: 480px;
+  padding: 1.5rem 2rem;
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -18,18 +18,32 @@
 
 .login-brand {
   text-align: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1rem;
 }
 
-.login-title {
+/* Crop box: set aspect ratio to match your logo or crop to a shape (e.g. 3/1 wide, 1/1 square) */
+.login-logo-wrap {
+  --login-logo-ratio: 2.5 / 1; /* wider crop = more cropped */
+  aspect-ratio: var(--login-logo-ratio);
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 0;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.login-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
   margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--accent);
+  object-fit: cover;   /* crops to fill the box; use contain to show full image with no crop */
+  object-position: center center; /* adjust to focus crop: center, top, left, 30% 20%, etc. */
 }
 
 .login-subtitle {
-  margin: 0.25rem 0 0;
+  margin: 0 0 0;
   font-size: 0.95rem;
   color: var(--muted);
 }
@@ -78,7 +92,7 @@
 }
 
 .login-submit {
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   font-weight: 600;
