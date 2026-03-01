@@ -45,16 +45,17 @@ export default function SleepChart({
   const showBaby = series === 'baby' || series === 'both'
 
   return (
-    <div className="dashboard-slide dashboard-slide--chart">
+    <div className="dashboard-slide dashboard-slide--chart dashboard-slide--sleep-chart">
       <h3 className="dashboard-slide-title">Weekly sleep</h3>
       <p className="dashboard-slide-subtitle">
         {series === 'mom' ? 'Mother (hours)' : series === 'baby' ? 'Baby (hours)' : 'Mother vs baby (hours)'}
       </p>
+      <div className="sleep-chart-slide-wrap">
       <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <BarChart data={data} margin={{ top: 8, right: 16, left: 12, bottom: 32 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-          <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-          <YAxis domain={[0, 12]} tick={{ fontSize: 12 }} unit="h" />
+          <XAxis dataKey="day" tick={{ fontSize: 12 }} angle={-25} textAnchor="end" height={48} interval={0} />
+          <YAxis domain={[0, 12]} tick={{ fontSize: 12 }} unit="h" width={32} />
           <Tooltip formatter={(v: number) => [`${v} h`, '']} />
           {showMom && showBaby && <Legend />}
           {showMom && (
@@ -75,6 +76,7 @@ export default function SleepChart({
           )}
         </BarChart>
       </ResponsiveContainer>
+      </div>
     </div>
   )
 }

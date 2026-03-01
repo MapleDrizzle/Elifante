@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import ThemeToggle from './ThemeToggle'
 
@@ -12,7 +12,9 @@ const SIDEBAR_ITEMS = [
 
 export default function Layout(): JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signOut } = useAuth()
+  const isHome = location.pathname === '/'
 
   const handleSignOut = async () => {
     await signOut()
@@ -42,7 +44,7 @@ export default function Layout(): JSX.Element {
           Sign out
         </button>
       </aside>
-      <div className="app-content">
+      <div className={`app-content${isHome ? ' app-content--home' : ''}`}>
         <a href="/" className="app-logo-float" aria-label="Elifante home">
           <img src="/images/elifante_logo.png" alt="" aria-hidden />
         </a>

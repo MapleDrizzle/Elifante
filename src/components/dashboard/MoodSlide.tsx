@@ -71,18 +71,18 @@ export default function MoodSlide({ momId }: Props): JSX.Element {
       <h3 className="dashboard-slide-title">Your week at a glance</h3>
       <p className="dashboard-slide-subtitle">Mood by day (1 = Mad, 5 = Happy)</p>
       <div className="mood-chart-slide-wrap">
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={360}>
           <BarChart
             data={weeklyChartData}
-            margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
+            margin={{ top: 8, right: 16, left: 12, bottom: 32 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-            <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+            <XAxis dataKey="day" tick={{ fontSize: 12 }} angle={-25} textAnchor="end" height={48} interval={0} />
             <YAxis
               domain={[0, 5]}
               ticks={[1, 2, 3, 4, 5]}
-              tick={{ fontSize: 10 }}
-              width={20}
+              tick={{ fontSize: 12 }}
+              width={32}
             />
             <Tooltip
               formatter={(value: number) =>
