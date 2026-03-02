@@ -26,7 +26,9 @@ export default function CalorieGoalChart({ momId, variant = 'default' }: Props):
   return (
     <div className="dashboard-slide dashboard-slide--chart calorie-goal-chart">
       {variant !== 'slideshow' && (
-        <p className="calorie-goal-label">{t('diet.logWhatYouEat')}</p>
+
+        <p className="calorie-goal-label">Today&apos;s calories toward your daily goal</p>
+
       )}
       <div className="calorie-goal-chart-wrap">
         <ResponsiveContainer width={variant === 'slideshow' ? 180 : '100%'} height={variant === 'slideshow' ? 180 : 220}>

@@ -96,7 +96,7 @@
   "diet": {
     "title": "Diet",
     "subtitle": "Track your nutrition and your baby's meals",
-    "momCalorieGoal": "Mom – daily calorie goal",
+    "momCalorieGoal": "Mom – today's calorie goal",
     "babyIntake": "Baby – today's intake",
     "addMealMom": "Add meal (mom)",
     "addMealBaby": "Add meal (baby)",

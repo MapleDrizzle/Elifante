@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { useTodayBabyDietEntries } from '../hooks/useDashboardData'
-import { askGemini } from '../lib/gemini'
 import CalorieGoalChart from '../components/dashboard/CalorieGoalChart'
 import BabyMlGoalChart from '../components/dashboard/BabyMlGoalChart'
 import DietTodayList from '../components/dashboard/DietTodayList'
+import { askGemini } from '../lib/gemini'
 import '../styles/TrackPage.css'
 
 export default function Diet(): JSX.Element {
@@ -15,6 +15,7 @@ export default function Diet(): JSX.Element {
   const momId = mom?.id ?? null
   const babyIds = babies.map((b) => b.id)
   const { entries: todayBabyEntries, loading: todayBabyLoading } = useTodayBabyDietEntries(babyIds)
+
   const [dietPlanPrompt, setDietPlanPrompt] = useState('')
   const [dietPlanResult, setDietPlanResult] = useState<string | null>(null)
   const [dietPlanLoading, setDietPlanLoading] = useState(false)
@@ -41,6 +42,7 @@ User's message: ${userInput}`
       setDietPlanLoading(false)
     }
   }
+
 
   return (
     <>
@@ -107,6 +109,7 @@ User's message: ${userInput}`
           </div>
         </section>
 
+
         <section className="diet-plan-section" aria-label="Diet plan suggestions">
           <h3 className="diet-plan-title">{t('diet.getDietPlan')}</h3>
           <p className="diet-plan-description">
@@ -144,6 +147,7 @@ User's message: ${userInput}`
             </div>
           )}
         </section>
+
       </main>
     </>
   )

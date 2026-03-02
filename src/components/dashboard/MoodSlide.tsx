@@ -67,7 +67,7 @@ export default function MoodSlide({ momId }: Props): JSX.Element {
       <h3 className="dashboard-slide-title">{t('mental.weekAtGlance')}</h3>
       <p className="dashboard-slide-subtitle">{t('mental.moodByDay')}</p>
       <div className="mood-chart-slide-wrap">
-        <ResponsiveContainer width="100%" height={360}>
+        <ResponsiveContainer width="100%" height={180}>
           <BarChart
             data={weeklyChartData}
             margin={{ top: 8, right: 16, left: 12, bottom: 32 }}
