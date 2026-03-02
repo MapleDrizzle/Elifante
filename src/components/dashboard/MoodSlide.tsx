@@ -8,20 +8,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import { useMoodHistory } from '../../hooks/useDashboardData'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const DAY_KEY: Record<string, string> = { Sun: 'sun', Mon: 'mon', Tue: 'tue', Wed: 'wed', Thu: 'thu', Fri: 'fri', Sat: 'sat' }
 
-const MOOD_LABELS: Record<number, string> = {
-  1: 'Mad',
-  2: 'Low',
-  3: 'Okay',
-  4: 'Good',
-  5: 'Happy',
-}
-
-function getMoodDisplay(rating: number): { label: string } {
-  return { label: MOOD_LABELS[rating] ?? 'Okay' }
+function getMoodDisplay(rating: number, t: (k: string) => string): { label: string } {
+  const labels: Record<number, string> = { 1: t('mental.mad'), 2: t('mental.low'), 3: t('mental.okay'), 4: t('mental.good'), 5: t('mental.happy') }
+  return { label: labels[rating] ?? t('mental.okay') }
 }
 
 function formatMoodDate(iso: string): string {
@@ -34,6 +29,7 @@ type Props = {
 }
 
 export default function MoodSlide({ momId }: Props): JSX.Element {
+  const { t } = useTranslation()
   const { moods, loading } = useMoodHistory(momId)
 
   const weeklyChartData = useMemo(() => {
@@ -49,16 +45,16 @@ export default function MoodSlide({ momId }: Props): JSX.Element {
           ? moodsOnDay.sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))[0]
           : null
       const moodVal = latest?.mood ?? 0
-      const label = latest ? getMoodDisplay(latest.mood).label : '—'
+      const label = latest ? getMoodDisplay(latest.mood, t).label : '—'
       data.push({ day: dayLabel, date: dateStr, mood: moodVal, label })
     }
     return data
-  }, [moods])
+  }, [moods, t])
 
   if (loading) {
     return (
       <div className="dashboard-slide dashboard-slide--loading">
-        Loading mood…
+        {t('mental.loadingMood')}
       </div>
     )
   }
@@ -66,10 +62,10 @@ export default function MoodSlide({ momId }: Props): JSX.Element {
   return (
     <div className="dashboard-slide dashboard-slide--chart dashboard-slide--mood-chart">
       <header className="mood-slide-header">
-        <h2 className="mood-slide-title">Mood</h2>
+        <h2 className="mood-slide-title">{t('mental.mood')}</h2>
       </header>
-      <h3 className="dashboard-slide-title">Your week at a glance</h3>
-      <p className="dashboard-slide-subtitle">Mood by day (1 = Mad, 5 = Happy)</p>
+      <h3 className="dashboard-slide-title">{t('mental.weekAtGlance')}</h3>
+      <p className="dashboard-slide-subtitle">{t('mental.moodByDay')}</p>
       <div className="mood-chart-slide-wrap">
         <ResponsiveContainer width="100%" height={360}>
           <BarChart
@@ -86,7 +82,7 @@ export default function MoodSlide({ momId }: Props): JSX.Element {
             />
             <Tooltip
               formatter={(value: number) =>
-                [value === 0 ? 'No check-in' : getMoodDisplay(value).label, 'Mood']
+                [value === 0 ? t('mental.noCheckin') : getMoodDisplay(value, t).label, t('mental.mood')]
               }
               labelFormatter={(_, payload) =>
                 payload?.[0]?.payload?.date
@@ -98,7 +94,7 @@ export default function MoodSlide({ momId }: Props): JSX.Element {
               dataKey="mood"
               fill="var(--accent)"
               radius={[4, 4, 0, 0]}
-              name="Mood"
+              name={t('mental.mood')}
             />
           </BarChart>
         </ResponsiveContainer>

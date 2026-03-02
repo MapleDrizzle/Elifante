@@ -1,4 +1,5 @@
 import { RadialBar, RadialBarChart, ResponsiveContainer } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import { useTodayDietCalories } from '../../hooks/useDashboardData'
 
 type Props = {
@@ -8,6 +9,7 @@ type Props = {
 }
 
 export default function CalorieGoalChart({ momId, variant = 'default' }: Props): JSX.Element {
+  const { t } = useTranslation()
   const { totalCalories, goal, loading } = useTodayDietCalories(momId)
 
   if (loading) {
@@ -24,7 +26,7 @@ export default function CalorieGoalChart({ momId, variant = 'default' }: Props):
   return (
     <div className="dashboard-slide dashboard-slide--chart calorie-goal-chart">
       {variant !== 'slideshow' && (
-        <p className="calorie-goal-label">Log what you eat to reach your daily calorie goal</p>
+        <p className="calorie-goal-label">{t('diet.logWhatYouEat')}</p>
       )}
       <div className="calorie-goal-chart-wrap">
         <ResponsiveContainer width={variant === 'slideshow' ? 180 : '100%'} height={variant === 'slideshow' ? 180 : 220}>
@@ -50,7 +52,7 @@ export default function CalorieGoalChart({ momId, variant = 'default' }: Props):
           <span className="calorie-goal-current">{totalCalories}</span>
           <span className="calorie-goal-sep">/</span>
           <span className="calorie-goal-target">{goal}</span>
-          <span className="calorie-goal-unit">cal</span>
+          <span className="calorie-goal-unit">{t('diet.cal')}</span>
         </div>
       </div>
     </div>

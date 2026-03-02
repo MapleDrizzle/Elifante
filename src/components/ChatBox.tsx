@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import './ChatBox.css'
 
 type Message = { role: 'user' | 'assistant'; content: string }
@@ -6,6 +7,7 @@ type Message = { role: 'user' | 'assistant'; content: string }
 const CHAT_API = import.meta.env.VITE_CHAT_API_URL?.trim() || '/api/chat'
 
 export default function ChatBox(): JSX.Element {
+  const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -36,20 +38,21 @@ export default function ChatBox(): JSX.Element {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: newHistory.map((m) => ({ role: m.role, content: m.content })),
+          language: i18n.language || 'en',
         }),
       })
       const data = await res.json()
       if (!res.ok) {
         setMessages((prev) => prev.slice(0, -1))
-        setError(data?.error || 'Something went wrong')
+        setError(data?.error || t('chatbox.somethingWrong'))
         setInput(text)
         return
       }
-      const reply = typeof data?.reply === 'string' ? data.reply : 'I couldn’t generate a reply. Try asking again.'
+      const reply = typeof data?.reply === 'string' ? data.reply : t('chatbox.noReply')
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }])
     } catch {
       setMessages((prev) => prev.slice(0, -1))
-      setError('Connection error. Try again.')
+      setError(t('chatbox.connectionError'))
       setInput(text)
     } finally {
       setLoading(false)
@@ -69,7 +72,7 @@ export default function ChatBox(): JSX.Element {
         type="button"
         className="chatbox-toggle"
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? 'Close chat' : 'Open chat - ask a question'}
+        aria-label={open ? t('chatbox.closeChat') : t('chatbox.openChat')}
         aria-expanded={open}
       >
         <span className="chatbox-toggle-icon" aria-hidden>
@@ -78,27 +81,27 @@ export default function ChatBox(): JSX.Element {
       </button>
 
       {open && (
-        <div className="chatbox-backdrop" onClick={() => setOpen(false)} role="dialog" aria-label="Ask a question">
+        <div className="chatbox-backdrop" onClick={() => setOpen(false)} role="dialog" aria-label={t('chatbox.title')}>
           <div className="chatbox-panel chatbox-panel--float" onClick={(e) => e.stopPropagation()}>
           <div className="chatbox-header">
-            <h3 className="chatbox-title">Ask anything</h3>
-            <p className="chatbox-subtitle">Postpartum, baby, sleep, or self-care — we’re here to help.</p>
+            <h3 className="chatbox-title">{t('chatbox.title')}</h3>
+            <p className="chatbox-subtitle">{t('chatbox.subtitle')}</p>
           </div>
 
           <div className="chatbox-messages">
             {messages.length === 0 && (
-              <p className="chatbox-placeholder">Type a question below. You can ask about feeding, sleep, how you’re feeling, or anything else.</p>
+              <p className="chatbox-placeholder">{t('chatbox.placeholder')}</p>
             )}
             {messages.map((m, i) => (
               <div key={i} className={`chatbox-message chatbox-message--${m.role}`}>
-                <span className="chatbox-message-role">{m.role === 'user' ? 'You' : 'Elifante'}</span>
+                <span className="chatbox-message-role">{m.role === 'user' ? t('chatbox.you') : t('chatbox.assistant')}</span>
                 <p className="chatbox-message-content">{m.content}</p>
               </div>
             ))}
             {loading && (
               <div className="chatbox-message chatbox-message--assistant">
-                <span className="chatbox-message-role">Elifante</span>
-                <p className="chatbox-message-content chatbox-typing">Thinking…</p>
+                <span className="chatbox-message-role">{t('chatbox.assistant')}</span>
+                <p className="chatbox-message-content chatbox-typing">{t('chatbox.thinking')}</p>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -115,21 +118,21 @@ export default function ChatBox(): JSX.Element {
               ref={inputRef}
               type="text"
               className="chatbox-input"
-              placeholder="Ask a question…"
+              placeholder={t('chatbox.inputPlaceholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={loading}
-              aria-label="Your question"
+              aria-label={t('chatbox.inputLabel')}
             />
             <button
               type="button"
               className="chatbox-send"
               onClick={sendMessage}
               disabled={loading || !input.trim()}
-              aria-label="Send"
+              aria-label={t('chatbox.sendLabel')}
             >
-              Send
+              {t('chatbox.sendLabel')}
             </button>
           </div>
           </div>

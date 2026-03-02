@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import '../styles/TrackPage.css'
 import {
@@ -17,15 +18,18 @@ import ChatBox from '../components/ChatBox'
 const SLIDE_LABELS = ['Sleep', 'Diet', 'Mood', 'Development']
 const AUTO_SLIDE_MS = 6000
 
+const SLIDE_KEYS = ['sleep', 'diet', 'mood', 'development'] as const
+
 export default function Home(): JSX.Element {
+  const { t } = useTranslation()
   const { displayName, mom, babies } = useAuth()
   const [slideIndex, setSlideIndex] = useState(0)
 
   const goNext = useCallback(() => {
-    setSlideIndex((i) => (i + 1) % SLIDE_LABELS.length)
+    setSlideIndex((i) => (i + 1) % SLIDE_KEYS.length)
   }, [])
   const goPrev = useCallback(() => {
-    setSlideIndex((i) => (i - 1 + SLIDE_LABELS.length) % SLIDE_LABELS.length)
+    setSlideIndex((i) => (i - 1 + SLIDE_KEYS.length) % SLIDE_KEYS.length)
   }, [])
 
   useEffect(() => {
@@ -51,11 +55,11 @@ export default function Home(): JSX.Element {
   return (
     <div className="home-page">
       <header className="app-header app-header--home">
-        <h1 className="home-greeting">Hello, {displayName}!</h1>
-        <p className="app-header-tagline">Your postpartum companion</p>
+        <h1 className="home-greeting">{t('home.greeting', { name: displayName })}</h1>
+        <p className="app-header-tagline">{t('home.tagline')}</p>
       </header>
       <main className="app-main app-main--dashboard">
-        <section className="slideshow" aria-label="Weekly summary slideshow">
+        <section className="slideshow" aria-label={t('home.slideshowLabel')}>
           <div className="slideshow-track">
             <div
               className="slideshow-slides"
@@ -72,17 +76,17 @@ export default function Home(): JSX.Element {
                 <div className="slideshow-diet-pair">
                   <div className="slideshow-diet-cell">
                     <CalorieGoalChart momId={mom?.id ?? null} variant="slideshow" />
-                    <p className="slideshow-diet-label">Mom – daily calorie goal</p>
+                    <p className="slideshow-diet-label">{t('home.momCalorieGoal')}</p>
                   </div>
                   <div className="slideshow-diet-cell">
                     {babyIds.length === 0 ? (
                       <div className="dashboard-slide dashboard-slide--empty">
-                        <p>Add a baby to track</p>
+                        <p>{t('home.addBabyToTrack')}</p>
                       </div>
                     ) : (
                       <BabyMlGoalChart babyIds={babyIds} variant="slideshow" />
                     )}
-                    <p className="slideshow-diet-label">Baby – today&apos;s intake (mL)</p>
+                    <p className="slideshow-diet-label">{t('home.babyIntake')}</p>
                   </div>
                 </div>
               </div>
@@ -99,17 +103,17 @@ export default function Home(): JSX.Element {
               type="button"
               className="slideshow-arrow slideshow-arrow--prev"
               onClick={goPrev}
-              aria-label="Previous slide"
+              aria-label={t('home.prevSlide')}
             >
               ‹
             </button>
             <div className="slideshow-dots" role="tablist" aria-label="Slide">
-              {SLIDE_LABELS.map((label, i) => (
+              {SLIDE_KEYS.map((key, i) => (
                 <button
-                  key={label}
+                  key={key}
                   type="button"
                   role="tab"
-                  aria-label={`Slide ${i + 1}: ${label}`}
+                  aria-label={t('home.slideLabel', { index: i + 1, name: t(`home.${key}`) })}
                   aria-selected={i === slideIndex}
                   className={`slideshow-dot ${i === slideIndex ? 'slideshow-dot--active' : ''}`}
                   onClick={() => setSlideIndex(i)}
@@ -120,7 +124,7 @@ export default function Home(): JSX.Element {
               type="button"
               className="slideshow-arrow slideshow-arrow--next"
               onClick={goNext}
-              aria-label="Next slide"
+              aria-label={t('home.nextSlide')}
             >
               ›
             </button>

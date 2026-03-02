@@ -62,11 +62,13 @@ What they wrote on their mind: ${whatOnMind || '(nothing)'}`
               }
 
               if (isChat) {
-                const { messages } = JSON.parse(body || '{}')
+                const { messages, language } = JSON.parse(body || '{}')
                 const history = (Array.isArray(messages) ? messages : [])
                   .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
                   .map((m) => ({ role: m.role, content: m.content.trim() }))
-                const sys = 'You are a professional, supportive assistant for new mothers. Answer questions about postpartum recovery, baby care, sleep, feeding, and self-care in a clear, informative way. Use a formal tone—avoid terms of endearment (e.g. sweetie, sweet mama, honey) and casual phrasing. Be kind and respectful without being overly familiar. Do not give medical advice; suggest talking to a doctor or provider when needed. Keep replies helpful and concise (a short paragraph unless they ask for more). If they seem in distress, suggest Postpartum Support International (postpartum.net) or their healthcare provider.'
+                const lang = (language === 'es' || language === 'fr') ? language : 'en'
+                const langInstruction = lang === 'es' ? 'Respond ONLY in Spanish.' : lang === 'fr' ? 'Respond ONLY in French.' : 'Respond in English.'
+                const sys = `You are a professional, supportive assistant for new mothers. Answer questions about postpartum recovery, baby care, sleep, feeding, and self-care in a clear, informative way. Use a formal tone—avoid terms of endearment (e.g. sweetie, sweet mama, honey) and casual phrasing. Be kind and respectful without being overly familiar. Do not give medical advice; suggest talking to a doctor or provider when needed. Keep replies helpful and concise (a short paragraph unless they ask for more). If they seem in distress, suggest Postpartum Support International (postpartum.net) or their healthcare provider. IMPORTANT: ${langInstruction}`
                 const convo = history.length
                   ? history.map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`).join('\n\n')
                   : 'User: Hello'

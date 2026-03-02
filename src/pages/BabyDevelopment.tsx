@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Line,
   LineChart,
@@ -37,6 +38,7 @@ function formatDate(iso: string): string {
 }
 
 export default function BabyDevelopment(): JSX.Element {
+  const { t } = useTranslation()
   const { babies, addBaby } = useAuth()
   const [selectedBabyIndex, setSelectedBabyIndex] = useState(0)
   const selectedBaby = babies[selectedBabyIndex] ?? babies[0] ?? null
@@ -189,7 +191,7 @@ export default function BabyDevelopment(): JSX.Element {
     if (!goal || !firstBaby) return
     const apiKey = import.meta.env.VITE_GOOGLE_GEMINI_API_KEY
     if (!apiKey) {
-      setTipsError('Google Gemini API key not configured. Add VITE_GOOGLE_GEMINI_API_KEY to your .env file.')
+      setTipsError(t('babyDev.apiKeyNotConfigured'))
       return
     }
     setTipsError(null)
@@ -214,7 +216,7 @@ export default function BabyDevelopment(): JSX.Element {
       )
       setTipsContent(content)
     } catch (err) {
-      setTipsError(err instanceof Error ? err.message : 'Failed to get tips')
+      setTipsError(err instanceof Error ? err.message : t('babyDev.failedToGetTips'))
     } finally {
       setTipsLoading(false)
     }
@@ -234,7 +236,7 @@ export default function BabyDevelopment(): JSX.Element {
       setShowAddBabyModal(false)
       setSelectedBabyIndex(0)
     } catch {
-      setAddBabyError('Could not add baby. Try again.')
+      setAddBabyError(t('babyDev.addBabyFailed'))
     } finally {
       setAddBabySubmitting(false)
     }
@@ -244,25 +246,24 @@ export default function BabyDevelopment(): JSX.Element {
     return (
       <>
         <header className="app-header">
-          <h1>Baby Development</h1>
-          <p>Track your baby&apos;s milestones</p>
+          <h1>{t('babyDev.title')}</h1>
+          <p>{t('babyDev.tagline')}</p>
         </header>
         <main className="app-main">
           <div className="baby-dev-add-card">
-            <h2 className="baby-dev-add-title">Add your baby</h2>
+            <h2 className="baby-dev-add-title">{t('babyDev.addYourBaby')}</h2>
             <p className="baby-dev-add-subtitle">
-              Add a baby to start tracking development, weight, height, and
-              milestones.
+              {t('babyDev.addBabySubtitle')}
             </p>
             <form
               onSubmit={handleAddBaby}
               className="baby-dev-add-form"
             >
               <label className="baby-dev-add-label">
-                Baby&apos;s name
+                {t('babyDev.babyName')}
                 <input
                   type="text"
-                  placeholder="e.g. Emma"
+                  placeholder={t('babyDev.placeholderName')}
                   value={addBabyName}
                   onChange={(e) => setAddBabyName(e.target.value)}
                   required
@@ -270,7 +271,7 @@ export default function BabyDevelopment(): JSX.Element {
                 />
               </label>
               <label className="baby-dev-add-label">
-                Birth date
+                {t('babyDev.birthDate')}
                 <input
                   type="date"
                   value={addBabyBirthDate}
@@ -289,7 +290,7 @@ export default function BabyDevelopment(): JSX.Element {
                 className="baby-dev-add-submit"
                 disabled={addBabySubmitting}
               >
-                {addBabySubmitting ? 'Adding…' : 'Add baby'}
+                {addBabySubmitting ? t('babyDev.adding') : t('babyDev.addBaby')}
               </button>
             </form>
           </div>
@@ -310,7 +311,7 @@ export default function BabyDevelopment(): JSX.Element {
                   className="baby-dev-baby-select"
                   value={selectedBabyIndex}
                   onChange={(e) => setSelectedBabyIndex(Number(e.target.value))}
-                  aria-label="Select baby"
+                  aria-label={t('babyDev.selectBaby')}
                 >
                   {babies.map((b, i) => (
                     <option key={b.id} value={i}>
@@ -326,37 +327,37 @@ export default function BabyDevelopment(): JSX.Element {
                 className="baby-dev-add-baby-btn"
                 onClick={() => setShowAddBabyModal(true)}
               >
-                Add baby
+                {t('babyDev.addBaby')}
               </button>
             </div>
-            <p className="baby-dev-subtitle">Track development, weight, height & milestones</p>
+            <p className="baby-dev-subtitle">{t('babyDev.trackSubtitle')}</p>
           </div>
         </section>
 
         {/* Stats row: Age | Weight | Height + Log baby info */}
         <section className="baby-dev-stats-row">
           <div className="baby-dev-stat-pill">
-            <span className="baby-dev-stat-value">{ageMonths} mo{ageDays > 0 ? ` ${ageDays} d` : ''}</span>
-            <span className="baby-dev-stat-label">Age</span>
+            <span className="baby-dev-stat-value">{ageMonths} {t('babyDev.mo')}{ageDays > 0 ? ` ${ageDays} ${t('babyDev.d')}` : ''}</span>
+            <span className="baby-dev-stat-label">{t('babyDev.age')}</span>
           </div>
           <div className="baby-dev-stat-pill">
             <span className="baby-dev-stat-value">
               {latestWeightKg != null ? `${kgToLbs(latestWeightKg)} lbs` : '—'}
             </span>
-            <span className="baby-dev-stat-label">Weight</span>
+            <span className="baby-dev-stat-label">{t('babyDev.weight')}</span>
           </div>
           <div className="baby-dev-stat-pill">
             <span className="baby-dev-stat-value">
               {latestHeightCm != null ? `${cmToInches(latestHeightCm)} in` : '—'}
             </span>
-            <span className="baby-dev-stat-label">Height</span>
+            <span className="baby-dev-stat-label">{t('babyDev.height')}</span>
           </div>
           <button
             type="button"
             className="baby-dev-log-btn baby-dev-log-btn--inline"
             onClick={() => openLogModal('all')}
           >
-            Log baby info
+            {t('babyDev.logBabyInfo')}
           </button>
         </section>
 
@@ -364,14 +365,14 @@ export default function BabyDevelopment(): JSX.Element {
         <section className="baby-dev-charts-row">
           <div className="baby-dev-chart-card baby-dev-chart-card--compact">
             <div className="baby-dev-chart-header">
-              <h3 className="baby-dev-chart-title">Weight over time (lbs)</h3>
+              <h3 className="baby-dev-chart-title">{t('babyDev.weightOverTime')}</h3>
               <div className="baby-dev-chart-actions">
                 <button
                   type="button"
                   className="baby-dev-add-metric-btn"
                   onClick={() => openLogModal('weight')}
                 >
-                  Add weight
+                  {t('babyDev.addWeight')}
                 </button>
                 {logs.some((l) => l.weightKg != null) && (
                   <button
@@ -379,16 +380,16 @@ export default function BabyDevelopment(): JSX.Element {
                     className="baby-dev-edit-btn baby-dev-edit-btn--header"
                     onClick={() => setEditListMode('weight')}
                   >
-                    Edit
+                    {t('babyDev.edit')}
                   </button>
                 )}
               </div>
             </div>
             {loading ? (
-              <div className="baby-dev-chart-loading" style={{ minHeight: CHART_HEIGHT }}>Loading…</div>
+              <div className="baby-dev-chart-loading" style={{ minHeight: CHART_HEIGHT }}>{t('babyDev.loading')}</div>
             ) : weightChartData.length === 0 ? (
               <div className="baby-dev-chart-empty" style={{ minHeight: CHART_HEIGHT }}>
-                No weight data yet. Add weight above.
+                {t('babyDev.noWeightData')}
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
@@ -411,8 +412,8 @@ export default function BabyDevelopment(): JSX.Element {
                     unit=" lbs"
                   />
                   <Tooltip
-                    formatter={(v: number) => [`${v} lbs`, 'Weight']}
-                    labelFormatter={(label) => `Age: ${label}`}
+                    formatter={(v: number) => [`${v} lbs`, t('babyDev.weight')]}
+                    labelFormatter={(label) => `${t('babyDev.ageLabel')}: ${label}`}
                   />
                   <Line
                     type="monotone"
@@ -420,7 +421,7 @@ export default function BabyDevelopment(): JSX.Element {
                     stroke="var(--accent)"
                     strokeWidth={2}
                     dot={{ fill: 'var(--accent)', r: 4 }}
-                    name="Weight"
+                    name={t('babyDev.weight')}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -429,14 +430,14 @@ export default function BabyDevelopment(): JSX.Element {
 
           <div className="baby-dev-chart-card baby-dev-chart-card--compact">
           <div className="baby-dev-chart-header">
-            <h3 className="baby-dev-chart-title">Height over time (inches)</h3>
+            <h3 className="baby-dev-chart-title">{t('babyDev.heightOverTime')}</h3>
             <div className="baby-dev-chart-actions">
               <button
                 type="button"
                 className="baby-dev-add-metric-btn"
                 onClick={() => openLogModal('height')}
-              >
-                Add height
+                >
+                {t('babyDev.addHeight')}
               </button>
               {logs.some((l) => l.heightCm != null) && (
                 <button
@@ -444,16 +445,16 @@ export default function BabyDevelopment(): JSX.Element {
                   className="baby-dev-edit-btn baby-dev-edit-btn--header"
                   onClick={() => setEditListMode('height')}
                 >
-                  Edit
+                  {t('babyDev.edit')}
                 </button>
               )}
             </div>
           </div>
           {loading ? (
-            <div className="baby-dev-chart-loading" style={{ minHeight: CHART_HEIGHT }}>Loading…</div>
+            <div className="baby-dev-chart-loading" style={{ minHeight: CHART_HEIGHT }}>{t('babyDev.loading')}</div>
           ) : heightChartData.length === 0 ? (
             <div className="baby-dev-chart-empty" style={{ minHeight: CHART_HEIGHT }}>
-              No height data yet. Add height above.
+                {t('babyDev.noHeightData')}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
@@ -476,8 +477,8 @@ export default function BabyDevelopment(): JSX.Element {
                   unit=" in"
                 />
                 <Tooltip
-                  formatter={(v: number) => [`${v} in`, 'Height']}
-                  labelFormatter={(label) => `Age: ${label}`}
+                    formatter={(v: number) => [`${v} in`, t('babyDev.height')]}
+                    labelFormatter={(label) => `${t('babyDev.ageLabel')}: ${label}`}
                 />
                 <Line
                   type="monotone"
@@ -485,7 +486,7 @@ export default function BabyDevelopment(): JSX.Element {
                   stroke="var(--accent)"
                   strokeWidth={2}
                   dot={{ fill: 'var(--accent)', r: 4 }}
-                  name="Height"
+                    name={t('babyDev.height')}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -496,14 +497,14 @@ export default function BabyDevelopment(): JSX.Element {
         <section className="baby-dev-bottom-row">
         <section className="baby-dev-milestone-section baby-dev-bottom-col">
           <div className="baby-dev-milestone-header">
-            <h3 className="baby-dev-milestone-title">Milestones</h3>
+            <h3 className="baby-dev-milestone-title">{t('babyDev.milestones')}</h3>
             <div className="baby-dev-milestone-actions">
               <button
                 type="button"
                 className="baby-dev-add-metric-btn"
                 onClick={() => openLogModal('milestone')}
               >
-                Add milestone
+                {t('babyDev.addMilestone')}
               </button>
               <button
                 type="button"
@@ -515,15 +516,15 @@ export default function BabyDevelopment(): JSX.Element {
                   setTipsGoal('')
                 }}
               >
-                Tips
+                {t('babyDev.tips')}
               </button>
             </div>
           </div>
           {loading ? (
-            <p className="baby-dev-milestone-loading">Loading…</p>
+            <p className="baby-dev-milestone-loading">{t('babyDev.loading')}</p>
           ) : logs.filter((l) => l.milestone?.trim()).length === 0 ? (
             <p className="baby-dev-milestone-empty">
-              No milestones yet. Add a milestone above.
+              {t('babyDev.noMilestonesYet')}
             </p>
           ) : (
             <ul className="baby-dev-milestone-list">
@@ -540,9 +541,9 @@ export default function BabyDevelopment(): JSX.Element {
                       type="button"
                       className="baby-dev-edit-btn"
                       onClick={() => openEditModal(log)}
-                      aria-label={`Edit milestone from ${formatDate(log.recordedAt)}`}
+                      aria-label={`${t('babyDev.edit')} ${formatDate(log.recordedAt)}`}
                     >
-                      Edit
+                      {t('babyDev.edit')}
                     </button>
                   </li>
                 ))}
@@ -551,14 +552,13 @@ export default function BabyDevelopment(): JSX.Element {
         </section>
 
         <section className="baby-dev-logs-section baby-dev-bottom-col">
-          <h3 className="baby-dev-logs-title">Past logs</h3>
+          <h3 className="baby-dev-logs-title">{t('babyDev.pastLogs')}</h3>
 
           {loading ? (
-            <p className="baby-dev-logs-loading">Loading logs…</p>
+            <p className="baby-dev-logs-loading">{t('babyDev.loadingLogs')}</p>
           ) : logs.length === 0 ? (
             <p className="baby-dev-logs-empty">
-              No logs yet. Click &quot;Log baby info&quot; to add weight,
-              height, or milestones.
+              {t('babyDev.noLogsYet')}
             </p>
           ) : (
             <ul className="baby-dev-logs-list">
@@ -568,9 +568,9 @@ export default function BabyDevelopment(): JSX.Element {
                     {formatDate(log.recordedAt)}
                   </span>
                   <span className="baby-dev-log-age">
-                    {log.ageMonths} mo
+                    {log.ageMonths} {t('babyDev.mo')}
                     {(log.ageDays % 30) > 0
-                      ? ` ${log.ageDays % 30} d`
+                      ? ` ${log.ageDays % 30} ${t('babyDev.d')}`
                       : ''}
                   </span>
                   <span className="baby-dev-log-values">
@@ -596,9 +596,9 @@ export default function BabyDevelopment(): JSX.Element {
                     type="button"
                     className="baby-dev-edit-btn"
                     onClick={() => openEditModal(log)}
-                    aria-label={`Edit log from ${formatDate(log.recordedAt)}`}
+                    aria-label={`${t('babyDev.editLog')} ${formatDate(log.recordedAt)}`}
                   >
-                    Edit
+                    {t('babyDev.edit')}
                   </button>
                 </li>
               ))}
@@ -626,7 +626,7 @@ export default function BabyDevelopment(): JSX.Element {
             aria-labelledby="edit-list-modal-title"
           >
             <h2 id="edit-list-modal-title" className="baby-dev-modal-title">
-              Edit {editListMode === 'weight' ? 'weight' : 'height'} entries
+              {editListMode === 'weight' ? t('babyDev.editWeightEntries') : t('babyDev.editHeightEntries')}
             </h2>
             <ul className="baby-dev-edit-list">
               {logsToEdit.map((log) => (
@@ -649,7 +649,7 @@ export default function BabyDevelopment(): JSX.Element {
                       openEditModal(log)
                     }}
                   >
-                    Edit
+                    {t('babyDev.edit')}
                   </button>
                 </li>
               ))}
@@ -659,7 +659,7 @@ export default function BabyDevelopment(): JSX.Element {
               className="baby-dev-modal-cancel baby-dev-modal-cancel--block"
               onClick={() => setEditListMode(null)}
             >
-              Close
+              {t('babyDev.close')}
             </button>
           </div>
         </div>
@@ -683,38 +683,38 @@ export default function BabyDevelopment(): JSX.Element {
             aria-labelledby="edit-modal-title"
           >
             <h2 id="edit-modal-title" className="baby-dev-modal-title">
-              Edit log ({formatDate(editingLog.recordedAt)})
+              {t('babyDev.editLog')} ({formatDate(editingLog.recordedAt)})
             </h2>
             <form onSubmit={handleEditSubmit} className="baby-dev-modal-form">
               <label className="baby-dev-modal-label">
-                Weight (lbs)
+                {t('babyDev.weightLbs')}
                 <input
                   type="number"
                   step="0.1"
                   min="0"
-                  placeholder="e.g. 12.5"
+                  placeholder={t('babyDev.placeholderWeight')}
                   value={logWeightLbs}
                   onChange={(e) => setLogWeightLbs(e.target.value)}
                   className="baby-dev-modal-input"
                 />
               </label>
               <label className="baby-dev-modal-label">
-                Height (inches)
+                {t('babyDev.heightIn')}
                 <input
                   type="number"
                   step="0.1"
                   min="0"
-                  placeholder="e.g. 24"
+                  placeholder={t('babyDev.placeholderHeight')}
                   value={logHeightIn}
                   onChange={(e) => setLogHeightIn(e.target.value)}
                   className="baby-dev-modal-input"
                 />
               </label>
               <label className="baby-dev-modal-label">
-                Milestone
+                {t('babyDev.milestoneLabel')}
                 <input
                   type="text"
-                  placeholder="e.g. First smile"
+                  placeholder={t('babyDev.placeholderMilestone')}
                   value={logMilestone}
                   onChange={(e) => setLogMilestone(e.target.value)}
                   className="baby-dev-modal-input"
@@ -731,14 +731,14 @@ export default function BabyDevelopment(): JSX.Element {
                   className="baby-dev-modal-cancel"
                   onClick={() => setEditingLog(null)}
                 >
-                  Cancel
+                  {t('babyDev.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="baby-dev-modal-submit"
                   disabled={updating || !canSubmit}
                 >
-                  {updating ? 'Updating…' : 'Update'}
+                  {updating ? t('babyDev.updating') : t('babyDev.update')}
                 </button>
               </div>
             </form>
@@ -764,18 +764,18 @@ export default function BabyDevelopment(): JSX.Element {
             aria-labelledby="tips-modal-title"
           >
             <h2 id="tips-modal-title" className="baby-dev-modal-title">
-              Development tips
+              {t('babyDev.developmentTips')}
             </h2>
             <p className="baby-dev-tips-subtitle">
-              Set a goal for {firstBaby.name}&apos;s development. We&apos;ll use their age, weight, height, and milestones to suggest personalized steps.
+              {t('babyDev.tipsSubtitle', { name: firstBaby.name })}
             </p>
             <form onSubmit={handleGetTips} className="baby-dev-modal-form">
               {!tipsContent && (
                 <label className="baby-dev-modal-label">
-                  Your goal
+                  {t('babyDev.yourGoal')}
                   <input
                     type="text"
-                    placeholder="e.g. Have my baby start crawling"
+                    placeholder={t('babyDev.placeholderGoal')}
                     value={tipsGoal}
                     onChange={(e) => setTipsGoal(e.target.value)}
                     required
@@ -791,7 +791,7 @@ export default function BabyDevelopment(): JSX.Element {
               )}
               {tipsContent ? (
                 <div className="baby-dev-tips-result">
-                  <h3 className="baby-dev-tips-result-title">Steps to achieve your goal</h3>
+                  <h3 className="baby-dev-tips-result-title">{t('babyDev.stepsToAchieve')}</h3>
                   <div className="baby-dev-tips-content">
                     {tipsContent.split(/\n\n+/).map((para, i) => (
                       <p key={i}>{para.trim()}</p>
@@ -805,14 +805,14 @@ export default function BabyDevelopment(): JSX.Element {
                     className="baby-dev-modal-cancel"
                     onClick={() => setShowTipsModal(false)}
                   >
-                    Close
+                    {t('babyDev.close')}
                   </button>
                   <button
                     type="submit"
                     className="baby-dev-modal-submit"
                     disabled={tipsLoading || !tipsGoal.trim()}
                   >
-                    {tipsLoading ? 'Generating…' : 'Get tips'}
+                    {tipsLoading ? t('babyDev.generating') : t('babyDev.getTips')}
                   </button>
                 </div>
               )}
@@ -827,14 +827,14 @@ export default function BabyDevelopment(): JSX.Element {
                     setTipsGoal('')
                   }}
                 >
-                  Try another goal
+                  {t('babyDev.tryAnotherGoal')}
                 </button>
                 <button
                   type="button"
                   className="baby-dev-modal-submit"
                   onClick={() => setShowTipsModal(false)}
                 >
-                  Close
+                  {t('babyDev.close')}
                 </button>
               </div>
             )}
@@ -860,14 +860,14 @@ export default function BabyDevelopment(): JSX.Element {
             aria-labelledby="add-baby-modal-title"
           >
             <h2 id="add-baby-modal-title" className="baby-dev-modal-title">
-              Add baby
+              {t('babyDev.addBaby')}
             </h2>
             <form onSubmit={handleAddBaby} className="baby-dev-modal-form">
               <label className="baby-dev-modal-label">
-                Baby&apos;s name
+                {t('babyDev.babyName')}
                 <input
                   type="text"
-                  placeholder="e.g. Emma"
+                  placeholder={t('babyDev.placeholderName')}
                   value={addBabyName}
                   onChange={(e) => setAddBabyName(e.target.value)}
                   required
@@ -875,7 +875,7 @@ export default function BabyDevelopment(): JSX.Element {
                 />
               </label>
               <label className="baby-dev-modal-label">
-                Birth date
+                {t('babyDev.birthDate')}
                 <input
                   type="date"
                   value={addBabyBirthDate}
@@ -895,14 +895,14 @@ export default function BabyDevelopment(): JSX.Element {
                   className="baby-dev-modal-cancel"
                   onClick={() => setShowAddBabyModal(false)}
                 >
-                  Cancel
+                  {t('babyDev.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="baby-dev-modal-submit"
                   disabled={addBabySubmitting}
                 >
-                  {addBabySubmitting ? 'Adding…' : 'Add baby'}
+                  {addBabySubmitting ? t('babyDev.adding') : t('babyDev.addBaby')}
                 </button>
               </div>
             </form>
@@ -929,22 +929,22 @@ export default function BabyDevelopment(): JSX.Element {
           >
             <h2 id="log-modal-title" className="baby-dev-modal-title">
               {logModalMode === 'weight'
-                ? 'Log weight'
+                ? t('babyDev.logWeight')
                 : logModalMode === 'height'
-                  ? 'Log height'
+                  ? t('babyDev.logHeight')
                   : logModalMode === 'milestone'
-                    ? 'Add milestone'
-                    : 'Log baby info'}
+                    ? t('babyDev.addMilestone')
+                    : t('babyDev.logBabyInfoModal')}
             </h2>
             <form onSubmit={handleLogSubmit} className="baby-dev-modal-form">
               {showWeightInModal && (
               <label className="baby-dev-modal-label">
-                Weight (lbs)
+                {t('babyDev.weightLbs')}
                 <input
                   type="number"
                   step="0.1"
                   min="0"
-                  placeholder="e.g. 12.5"
+                  placeholder={t('babyDev.placeholderWeight')}
                   value={logWeightLbs}
                   onChange={(e) => setLogWeightLbs(e.target.value)}
                   className="baby-dev-modal-input"
@@ -953,12 +953,12 @@ export default function BabyDevelopment(): JSX.Element {
               )}
               {showHeightInModal && (
               <label className="baby-dev-modal-label">
-                Height (inches)
+                {t('babyDev.heightIn')}
                 <input
                   type="number"
                   step="0.1"
                   min="0"
-                  placeholder="e.g. 24"
+                  placeholder={t('babyDev.placeholderHeight')}
                   value={logHeightIn}
                   onChange={(e) => setLogHeightIn(e.target.value)}
                   className="baby-dev-modal-input"
@@ -967,10 +967,10 @@ export default function BabyDevelopment(): JSX.Element {
               )}
               {showMilestoneInModal && (
               <label className="baby-dev-modal-label">
-                Milestone{logModalMode === 'milestone' ? '' : ' (optional)'}
+                {logModalMode === 'milestone' ? t('babyDev.milestoneLabel') : t('babyDev.milestoneOptional')}
                 <input
                   type="text"
-                  placeholder="e.g. First smile"
+                  placeholder={t('babyDev.placeholderMilestone')}
                   value={logMilestone}
                   onChange={(e) => setLogMilestone(e.target.value)}
                   className="baby-dev-modal-input"
@@ -988,14 +988,14 @@ export default function BabyDevelopment(): JSX.Element {
                   className="baby-dev-modal-cancel"
                   onClick={() => setLogModalMode(null)}
                 >
-                  Cancel
+                  {t('babyDev.cancel')}
                 </button>
                 <button
                   type="submit"
                   className="baby-dev-modal-submit"
                   disabled={inserting || !canSubmit}
                 >
-                  {inserting ? 'Saving…' : 'Log'}
+                  {inserting ? t('babyDev.saving') : t('babyDev.log')}
                 </button>
               </div>
             </form>

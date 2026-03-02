@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import '../styles/TrackPage.css'
 
 export default function AddBabyMeal(): JSX.Element {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { babies } = useAuth()
   const [babyId, setBabyId] = useState(babies[0]?.id ?? '')
@@ -24,11 +26,11 @@ export default function AddBabyMeal(): JSX.Element {
     setError(null)
     const client = supabase
     if (!client) {
-      setError('App not configured.')
+      setError(t('errors.appNotConfigured'))
       return
     }
     if (!babyId) {
-      setError('Please select a baby.')
+      setError(t('errors.selectBaby'))
       return
     }
     setSubmitting(true)
@@ -51,16 +53,16 @@ export default function AddBabyMeal(): JSX.Element {
     return (
       <>
         <header className="app-header">
-          <h1>Diet</h1>
-          <p>Add a meal for baby</p>
+          <h1>{t('diet.title')}</h1>
+          <p>{t('diet.addMealForBaby')}</p>
         </header>
         <main className="app-main form-page">
           <p className="track-last-empty">
-            Add a baby in Baby Development first, then you can log their meals here.
+            {t('diet.addBabyFirst')}
           </p>
           <div className="form-actions" style={{ marginTop: '1rem' }}>
             <Link to="/diet" className="form-cancel">
-              Back to Diet
+              {t('diet.backToDiet')}
             </Link>
           </div>
         </main>
@@ -71,15 +73,15 @@ export default function AddBabyMeal(): JSX.Element {
   return (
     <>
       <header className="app-header">
-        <h1>Diet</h1>
-        <p>Add a meal for baby</p>
+        <h1>{t('diet.title')}</h1>
+        <p>{t('diet.addMealForBaby')}</p>
       </header>
       <main className="app-main form-page">
-        <h2>Log baby&apos;s meal</h2>
+        <h2>{t('diet.logBabysMeal')}</h2>
         <form onSubmit={handleSubmit}>
           {babies.length > 1 && (
             <div className="form-group">
-              <label htmlFor="baby-select">Baby</label>
+              <label htmlFor="baby-select">{t('diet.baby')}</label>
               <select
                 id="baby-select"
                 value={babyId}
@@ -94,21 +96,21 @@ export default function AddBabyMeal(): JSX.Element {
             </div>
           )}
           <div className="form-group">
-            <label htmlFor="baby-food">Type of food / feeding</label>
+            <label htmlFor="baby-food">{t('diet.foodTypeLabel')}</label>
             <input
               id="baby-food"
               type="text"
-              placeholder="e.g. Formula, Breast milk, Puree"
+              placeholder={t('diet.foodTypePlaceholder')}
               value={food}
               onChange={(e) => setFood(e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="baby-bottle">Amount / notes</label>
+            <label htmlFor="baby-bottle">{t('diet.amountLabel')}</label>
             <input
               id="baby-bottle"
               type="text"
-              placeholder="e.g. 120 ml, 10 min, 4 oz"
+              placeholder={t('diet.amountPlaceholder')}
               value={bottle}
               onChange={(e) => setBottle(e.target.value)}
             />
@@ -116,10 +118,10 @@ export default function AddBabyMeal(): JSX.Element {
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             <button type="submit" className="form-submit" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Save meal'}
+              {submitting ? t('diet.saving') : t('diet.saveMeal')}
             </button>
             <Link to="/diet" className="form-cancel">
-              Cancel
+              {t('common.cancel')}
             </Link>
           </div>
         </form>

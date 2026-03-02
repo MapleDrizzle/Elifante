@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { useWeeklySleep } from '../hooks/useDashboardData'
 import SleepChart from '../components/dashboard/SleepChart'
@@ -10,6 +11,7 @@ import '../styles/TrackPage.css'
 const SLEEP_CHART_HEIGHT = 360
 
 export default function Sleep(): JSX.Element {
+  const { t } = useTranslation()
   const { mom, babies } = useAuth()
   const momId = mom?.id ?? null
   const babyIds = babies.map((b) => b.id)
@@ -65,13 +67,13 @@ export default function Sleep(): JSX.Element {
   return (
     <>
       <header className="app-header">
-        <h1>Sleep</h1>
-        <p>Track your sleep and your baby&apos;s sleep</p>
+        <h1>{t('sleep.title')}</h1>
+        <p>{t('sleep.subtitle')}</p>
       </header>
       <main className="app-main track-page">
         <div className="track-charts">
           <div className="track-chart-card track-chart-card--sleep">
-            <h3 className="track-chart-title">Mom – sleep</h3>
+            <h3 className="track-chart-title">{t('diet.mom')} – {t('sleep.title')}</h3>
             <SleepChart
               data={sleepData}
               loading={sleepLoading}
@@ -80,10 +82,10 @@ export default function Sleep(): JSX.Element {
             />
           </div>
           <div className="track-chart-card track-chart-card--sleep">
-            <h3 className="track-chart-title">Baby – sleep</h3>
+            <h3 className="track-chart-title">{t('diet.baby')} – {t('sleep.title')}</h3>
             {babies.length === 0 ? (
               <div className="track-chart-placeholder">
-                Add a baby to track
+                {t('home.addBabyToTrack')}
               </div>
             ) : (
               <SleepChart
@@ -98,22 +100,22 @@ export default function Sleep(): JSX.Element {
 
         <div className="track-buttons">
           <Link to="/sleep/add-mom" className="track-btn">
-            Add sleep (mom)
+            {t('sleep.addSleepMom')}
           </Link>
           <Link to="/sleep/add-baby" className="track-btn">
-            Add sleep (baby)
+            {t('sleep.addSleepBaby')}
           </Link>
         </div>
 
         <section className="track-last-logged" aria-label="Last logged sleep">
           <div>
-            <p className="track-last-label">Last mom sleep</p>
+            <p className="track-last-label">{t('sleep.lastMomSleep')}</p>
             <p className={`track-last-value ${!lastMomSleep ? 'track-last-empty' : ''}`}>
               {formatSleep(lastMomSleep)}
             </p>
           </div>
           <div>
-            <p className="track-last-label">Last baby sleep</p>
+            <p className="track-last-label">{t('sleep.lastBabySleep')}</p>
             <p className={`track-last-value ${!lastBabySleep ? 'track-last-empty' : ''}`}>
               {formatSleep(lastBabySleep)}
             </p>

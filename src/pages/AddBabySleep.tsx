@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import '../styles/TrackPage.css'
@@ -11,6 +12,7 @@ function toDatetimeLocal(iso: string): string {
 }
 
 export default function AddBabySleep(): JSX.Element {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { babies } = useAuth()
   const now = new Date()
@@ -32,7 +34,7 @@ export default function AddBabySleep(): JSX.Element {
     setError(null)
     const client = supabase
     if (!client) {
-      setError('App not configured.')
+      setError(t('errors.appNotConfigured'))
       return
     }
     if (!babyId) {
@@ -42,7 +44,7 @@ export default function AddBabySleep(): JSX.Element {
     const start = new Date(startTime).toISOString()
     const end = new Date(endTime).toISOString()
     if (new Date(start) >= new Date(end)) {
-      setError('End time must be after start time.')
+      setError(t('errors.endAfterStart'))
       return
     }
     setSubmitting(true)
@@ -64,16 +66,16 @@ export default function AddBabySleep(): JSX.Element {
     return (
       <>
         <header className="app-header">
-          <h1>Sleep</h1>
-          <p>Add sleep for baby</p>
+          <h1>{t('sleep.title')}</h1>
+          <p>{t('sleep.addSleepForBaby')}</p>
         </header>
         <main className="app-main form-page">
           <p className="track-last-empty">
-            Add a baby in Baby Development first, then you can log their sleep here.
+            {t('sleep.addBabyFirst')}
           </p>
           <div className="form-actions" style={{ marginTop: '1rem' }}>
             <Link to="/sleep" className="form-cancel">
-              Back to Sleep
+              {t('sleep.backToSleep')}
             </Link>
           </div>
         </main>
@@ -84,15 +86,15 @@ export default function AddBabySleep(): JSX.Element {
   return (
     <>
       <header className="app-header">
-        <h1>Sleep</h1>
-        <p>Add sleep for baby</p>
+        <h1>{t('sleep.title')}</h1>
+        <p>{t('sleep.addSleepForBaby')}</p>
       </header>
       <main className="app-main form-page">
-        <h2>Log baby&apos;s sleep</h2>
+        <h2>{t('sleep.logBabysSleep')}</h2>
         <form onSubmit={handleSubmit}>
           {babies.length > 1 && (
             <div className="form-group">
-              <label htmlFor="baby-sleep-select">Baby</label>
+              <label htmlFor="baby-sleep-select">{t('diet.baby')}</label>
               <select
                 id="baby-sleep-select"
                 value={babyId}
@@ -107,7 +109,7 @@ export default function AddBabySleep(): JSX.Element {
             </div>
           )}
           <div className="form-group">
-            <label htmlFor="baby-sleep-start">Start time</label>
+            <label htmlFor="baby-sleep-start">{t('sleep.startTime')}</label>
             <input
               id="baby-sleep-start"
               type="datetime-local"
@@ -117,7 +119,7 @@ export default function AddBabySleep(): JSX.Element {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="baby-sleep-end">End time</label>
+            <label htmlFor="baby-sleep-end">{t('sleep.endTime')}</label>
             <input
               id="baby-sleep-end"
               type="datetime-local"
@@ -129,10 +131,10 @@ export default function AddBabySleep(): JSX.Element {
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             <button type="submit" className="form-submit" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Save sleep'}
+              {submitting ? t('diet.saving') : t('sleep.saveSleep')}
             </button>
             <Link to="/sleep" className="form-cancel">
-              Cancel
+              {t('common.cancel')}
             </Link>
           </div>
         </form>

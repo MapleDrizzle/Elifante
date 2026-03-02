@@ -8,10 +8,10 @@
   position: relative;
 }
 
-.login-theme-toggle.theme-toggle--float {
+.login-theme-toggle.theme-toggle--float,
+.login-lang-switcher.language-switcher--float {
   position: fixed;
   top: 1rem;
-  right: 1rem;
   z-index: 10;
   display: flex;
   align-items: center;
@@ -28,7 +28,16 @@
   transition: background 0.15s ease, transform 0.1s ease;
 }
 
-.login-theme-toggle.theme-toggle--float:hover {
+.login-theme-toggle.theme-toggle--float {
+  right: 1rem;
+}
+
+.login-lang-switcher.language-switcher--float {
+  right: 4rem;
+}
+
+.login-theme-toggle.theme-toggle--float:hover,
+.login-lang-switcher.language-switcher--float:hover {
   background: var(--accent);
   color: white;
   border-color: var(--accent);

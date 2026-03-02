@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { useTodayBabyDietEntries } from '../hooks/useDashboardData'
 import { askGemini } from '../lib/gemini'
@@ -9,6 +10,7 @@ import DietTodayList from '../components/dashboard/DietTodayList'
 import '../styles/TrackPage.css'
 
 export default function Diet(): JSX.Element {
+  const { t } = useTranslation()
   const { mom, babies } = useAuth()
   const momId = mom?.id ?? null
   const babyIds = babies.map((b) => b.id)
@@ -23,7 +25,7 @@ export default function Diet(): JSX.Element {
     setDietPlanResult(null)
     const userInput = dietPlanPrompt.trim()
     if (!userInput) {
-      setDietPlanError('Please describe your goals or situation first.')
+      setDietPlanError(t('errors.describeGoals'))
       return
     }
     setDietPlanLoading(true)
@@ -34,7 +36,7 @@ User's message: ${userInput}`
       const reply = await askGemini(systemPrompt)
       setDietPlanResult(reply)
     } catch (err) {
-      setDietPlanError(err instanceof Error ? err.message : 'Could not get suggestions.')
+      setDietPlanError(err instanceof Error ? err.message : t('errors.couldNotGetSuggestions'))
     } finally {
       setDietPlanLoading(false)
     }
@@ -43,20 +45,20 @@ User's message: ${userInput}`
   return (
     <>
       <header className="app-header">
-        <h1>Diet</h1>
-        <p>Track your nutrition and your baby&apos;s meals</p>
+        <h1>{t('diet.title')}</h1>
+        <p>{t('diet.subtitle')}</p>
       </header>
       <main className="app-main track-page">
         <div className="track-charts">
           <div className="track-chart-card track-chart-card--diet">
-            <h3 className="track-chart-title">Mom – daily calorie goal</h3>
+            <h3 className="track-chart-title">{t('diet.momCalorieGoal')}</h3>
             <CalorieGoalChart momId={momId} />
           </div>
           <div className="track-chart-card track-chart-card--diet">
-            <h3 className="track-chart-title">Baby – today&apos;s intake</h3>
+            <h3 className="track-chart-title">{t('diet.babyIntake')}</h3>
             {babies.length === 0 ? (
               <div className="track-chart-placeholder">
-                Add a baby to track
+                {t('home.addBabyToTrack')}
               </div>
             ) : (
               <BabyMlGoalChart babyIds={babyIds} />
@@ -66,26 +68,26 @@ User's message: ${userInput}`
 
         <div className="track-buttons">
           <Link to="/diet/add-mom" className="track-btn">
-            Add meal (mom)
+            {t('diet.addMealMom')}
           </Link>
           <Link to="/diet/add-baby" className="track-btn">
-            Add meal (baby)
+            {t('diet.addMealBaby')}
           </Link>
         </div>
 
         <section className="diet-today-logs" aria-label="Today's diet logs">
-          <h3 className="diet-today-logs-title">Today&apos;s logs</h3>
+          <h3 className="diet-today-logs-title">{t('diet.todaysLogs')}</h3>
           <div className="diet-today-logs-grid">
             <div className="diet-today-logs-col">
-              <h4 className="diet-today-logs-col-title">Mom</h4>
+              <h4 className="diet-today-logs-col-title">{t('diet.mom')}</h4>
               <DietTodayList momId={momId} />
             </div>
             <div className="diet-today-logs-col">
-              <h4 className="diet-today-logs-col-title">Baby</h4>
+              <h4 className="diet-today-logs-col-title">{t('diet.baby')}</h4>
               {todayBabyLoading ? (
-                <p className="diet-today-logs-loading">Loading…</p>
+                <p className="diet-today-logs-loading">{t('common.loading')}</p>
               ) : todayBabyEntries.length === 0 ? (
-                <p className="diet-today-logs-empty">No feedings logged today.</p>
+                <p className="diet-today-logs-empty">{t('diet.noFeedingsToday')}</p>
               ) : (
                 <ul className="diet-log diet-log--baby" aria-label="Baby's feedings today">
                   {todayBabyEntries.map((entry) => (
@@ -106,9 +108,9 @@ User's message: ${userInput}`
         </section>
 
         <section className="diet-plan-section" aria-label="Diet plan suggestions">
-          <h3 className="diet-plan-title">Get a personalized diet plan</h3>
+          <h3 className="diet-plan-title">{t('diet.getDietPlan')}</h3>
           <p className="diet-plan-description">
-            Tell us a bit about your goals or situation (e.g. breastfeeding, calorie target, dietary restrictions), and we&apos;ll suggest a plan.
+            {t('diet.dietPlanDescription')}
           </p>
           <div className="form-group">
             <label htmlFor="diet-plan-prompt" className="sr-only">
@@ -117,7 +119,7 @@ User's message: ${userInput}`
             <textarea
               id="diet-plan-prompt"
               className="diet-plan-input"
-              placeholder="e.g. I'm breastfeeding and want to eat around 2000 cal. I don't eat dairy."
+              placeholder={t('diet.goalsPlaceholder')}
               value={dietPlanPrompt}
               onChange={(e) => setDietPlanPrompt(e.target.value)}
               rows={3}
@@ -137,7 +139,7 @@ User's message: ${userInput}`
           )}
           {dietPlanResult && (
             <div className="diet-plan-result" role="region" aria-label="Diet plan suggestions">
-              <h4 className="diet-plan-result-title">Suggestions for you</h4>
+              <h4 className="diet-plan-result-title">{t('diet.suggestionsForYou')}</h4>
               <div className="diet-plan-result-text">{dietPlanResult}</div>
             </div>
           )}
