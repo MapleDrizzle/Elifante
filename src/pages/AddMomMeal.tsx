@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { getTodayLocal } from '../lib/dateUtils'
 import { supabase } from '../lib/supabase'
@@ -7,6 +8,7 @@ import { estimateCalories } from '../lib/gemini'
 import '../styles/TrackPage.css'
 
 export default function AddMomMeal(): JSX.Element {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, mom } = useAuth()
   const [whatAte, setWhatAte] = useState('')
@@ -18,7 +20,7 @@ export default function AddMomMeal(): JSX.Element {
     setError(null)
     const client = supabase
     if (!client || !user) {
-      setError('Not signed in.')
+      setError(t('errors.notSignedIn'))
       return
     }
     let momId = mom?.id
@@ -36,7 +38,7 @@ export default function AddMomMeal(): JSX.Element {
     }
     const description = whatAte.trim()
     if (!description) {
-      setError('Please describe what you ate.')
+      setError(t('errors.describeWhatAte'))
       return
     }
     setSubmitting(true)
@@ -57,7 +59,7 @@ export default function AddMomMeal(): JSX.Element {
       }
       navigate('/diet', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not estimate calories.')
+      setError(err instanceof Error ? err.message : t('errors.couldNotEstimate'))
       setSubmitting(false)
     }
   }
@@ -65,21 +67,21 @@ export default function AddMomMeal(): JSX.Element {
   return (
     <>
       <header className="app-header">
-        <h1>Diet</h1>
-        <p>Add a meal for you</p>
+        <h1>{t('diet.title')}</h1>
+        <p>{t('diet.addMealForYou')}</p>
       </header>
       <main className="app-main form-page">
-        <h2>What did you eat?</h2>
-        <p className="form-hint">Describe your meal and we&apos;ll estimate the calories for your daily goal.</p>
+        <h2>{t('diet.whatDidYouEat')}</h2>
+        <p className="form-hint">{t('diet.describeMeal')}</p>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="mom-what-ate" className="sr-only">
-              What did you eat?
+              {t('diet.whatDidYouEat')}
             </label>
             <input
               id="mom-what-ate"
               type="text"
-              placeholder="e.g. Two eggs, toast with butter, orange juice"
+              placeholder={t('diet.mealPlaceholder')}
               value={whatAte}
               onChange={(e) => setWhatAte(e.target.value)}
               required
@@ -89,10 +91,10 @@ export default function AddMomMeal(): JSX.Element {
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             <button type="submit" className="form-submit" disabled={submitting}>
-              {submitting ? 'Estimating & saving…' : 'Add to daily goal'}
+              {submitting ? t('diet.estimatingSaving') : t('diet.addToDailyGoal')}
             </button>
             <Link to="/diet" className="form-cancel">
-              Cancel
+              {t('common.cancel')}
             </Link>
           </div>
         </form>

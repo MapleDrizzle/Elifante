@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import ThemeToggle from '../components/ThemeToggle'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 import './Login.css'
 
 export default function Login(): JSX.Element {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { signIn, signUp, error, clearError } = useAuth()
@@ -36,6 +39,7 @@ export default function Login(): JSX.Element {
   return (
     <div className="login-page">
       <ThemeToggle className="login-theme-toggle" />
+      <LanguageSwitcher className="login-lang-switcher" />
       <div className="login-card">
         <div className="login-brand">
           <div className="login-logo-wrap">
@@ -45,17 +49,17 @@ export default function Login(): JSX.Element {
               className="login-logo"
             />
           </div>
-          <p className="login-subtitle">Your postpartum companion</p>
+          <p className="login-subtitle">{t('login.subtitle')}</p>
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
           {isSignUp && (
             <label className="login-label">
-              Name (optional)
+              {t('login.nameOptional')}
               <input
                 type="text"
                 className="login-input"
-                placeholder="Your name"
+                placeholder={t('login.namePlaceholder')}
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 autoComplete="name"
@@ -77,11 +81,11 @@ export default function Login(): JSX.Element {
           </label>
 
           <label className="login-label">
-            Password
+            {t('login.password')}
             <input
               type="password"
               className="login-input"
-              placeholder="••••••••"
+              placeholder={t('login.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -93,7 +97,7 @@ export default function Login(): JSX.Element {
           {error && <p className="login-error" role="alert">{error}</p>}
 
           <button type="submit" className="login-submit" disabled={submitting}>
-            {submitting ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
+            {submitting ? t('login.pleaseWait') : isSignUp ? t('login.createAccount') : t('login.signIn')}
           </button>
         </form>
 
@@ -107,7 +111,7 @@ export default function Login(): JSX.Element {
               setIsSignUp((v) => !v)
             }}
           >
-            {isSignUp ? 'Sign in' : 'Sign up'}
+            {isSignUp ? t('login.signIn') : t('login.signUp')}
           </button>
         </p>
       </div>

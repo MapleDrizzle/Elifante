@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 import '../styles/TrackPage.css'
@@ -11,6 +12,7 @@ function toDatetimeLocal(iso: string): string {
 }
 
 export default function AddMomSleep(): JSX.Element {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { user, mom } = useAuth()
   const now = new Date()
@@ -25,13 +27,13 @@ export default function AddMomSleep(): JSX.Element {
     setError(null)
     const client = supabase
     if (!client || !user) {
-      setError('Not signed in.')
+      setError(t('errors.notSignedIn'))
       return
     }
     const start = new Date(startTime).toISOString()
     const end = new Date(endTime).toISOString()
     if (new Date(start) >= new Date(end)) {
-      setError('End time must be after start time.')
+      setError(t('errors.endAfterStart'))
       return
     }
     let momId = mom?.id
@@ -42,7 +44,7 @@ export default function AddMomSleep(): JSX.Element {
         .select('id')
         .single()
       if (momErr || !newMom) {
-        setError(momErr?.message ?? 'Could not create profile.')
+        setError(momErr?.message ?? t('errors.couldNotCreateProfile'))
         return
       }
       momId = newMom.id
@@ -65,14 +67,14 @@ export default function AddMomSleep(): JSX.Element {
   return (
     <>
       <header className="app-header">
-        <h1>Sleep</h1>
-        <p>Log your sleep</p>
+        <h1>{t('sleep.title')}</h1>
+        <p>{t('sleep.logYourSleep')}</p>
       </header>
       <main className="app-main form-page">
-        <h2>Log mom&apos;s sleep</h2>
+        <h2>{t('sleep.logMomsSleep')}</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="mom-sleep-start">Start time</label>
+            <label htmlFor="mom-sleep-start">{t('sleep.startTime')}</label>
             <input
               id="mom-sleep-start"
               type="datetime-local"
@@ -82,7 +84,7 @@ export default function AddMomSleep(): JSX.Element {
             />
           </div>
           <div className="form-group">
-            <label htmlFor="mom-sleep-end">End time</label>
+            <label htmlFor="mom-sleep-end">{t('sleep.endTime')}</label>
             <input
               id="mom-sleep-end"
               type="datetime-local"
@@ -94,10 +96,10 @@ export default function AddMomSleep(): JSX.Element {
           {error && <p className="form-error">{error}</p>}
           <div className="form-actions">
             <button type="submit" className="form-submit" disabled={submitting}>
-              {submitting ? 'Saving…' : 'Save sleep'}
+              {submitting ? t('diet.saving') : t('sleep.saveSleep')}
             </button>
             <Link to="/sleep" className="form-cancel">
-              Cancel
+              {t('common.cancel')}
             </Link>
           </div>
         </form>

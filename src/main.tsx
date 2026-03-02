@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { AuthProvider } from './contexts/AuthContext'
 import { ThemeProvider } from './contexts/ThemeContext'
 import App from './App'
+import './i18n'
 import './index.css'
 
 const rootEl = document.getElementById('root')
